@@ -378,3 +378,40 @@ def delete_chapter_view(request, chapter_id):
         return redirect('title_detail', slug=title.slug)
 
     return redirect('title_detail', slug=title.slug)
+
+
+
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Bookmark, ReadingHistory
+
+@login_required
+def profile_view(request):
+    user = request.user
+    
+    # Обработка обновления аватарки
+    if request.method == 'POST':
+        if 'avatar' in request.FILES:
+            user.avatar = request.FILES['avatar']
+            user.save()
+            return redirect('profile')
+
+    # Получаем закладки пользователя с группировкой по статусам
+    bookmarks = Bookmark.objects.filter(user=user).select_related('title')
+    
+    # Последние прочитанные главы
+    history = ReadingHistory.objects.filter(user=user).select_related('chapter__title')[:10]
+
+    context = {
+        'user_profile': user,
+        'bookmarks': bookmarks,
+        'history': history,
+    }
+    return render(request, 'manga/profile.html', context)

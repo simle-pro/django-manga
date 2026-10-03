@@ -1,0 +1,60 @@
+{% extends 'manga/base.html' %}
+
+{% block content %}
+<div class="profile-container" style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    <!-- Карточка профиля -->
+    <div style="display: flex; gap: 20px; background: #2a2a2a; color: #fff; padding: 20px; border-radius: 8px;">
+        <div>
+            {% if user_profile.avatar %}
+                <img src="{{ user_profile.avatar.url }}" alt="Avatar" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%;">
+            {% else %}
+                <div style="width: 120px; height: 120px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    Нет фото
+                </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data" style="margin-top: 10px;">
+                {% csrf_token %}
+                <input type="file" name="avatar" accept="image/*" style="display: none;" id="avatar-input" onchange="this.form.submit()">
+                <label for="avatar-input" style="cursor: pointer; font-size: 12px; color: #4da6ff;">Сменить фото</label>
+            </form>
+        </div>
+
+        <div>
+            <h2>{{ user_profile.username }} <small style="font-size: 14px; color: #888;">({{ user_profile.get_role_display }})</small></h2>
+            <p><strong>Ранг:</strong> {{ user_profile.rank_name }} (Уровень {{ user_profile.level }})</p>
+            <p><strong>Очки опыта (XP):</strong> {{ user_profile.xp }} XP</p>
+        </div>
+    </div>
+
+    <!-- Разделы: Закладки и История -->
+    <div style="margin-top: 30px;">
+        <h3>Мои закладки</h3>
+        <ul>
+            {% for b in bookmarks %}
+                <li>
+                    <a href="{% url 'title_detail' b.title.slug %}">{{ b.title.name }}</a> 
+                    — <strong>{{ b.get_status_display }}</strong>
+                </li>
+            {% empty %}
+                <li>Закладок пока нет</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h3>История чтения</h3>
+        <ul>
+            {% for h in history %}
+                <li>
+                    <a href="{% url 'title_detail' h.chapter.title.slug %}">{{ h.chapter.title.name }}</a> 
+                    — Том {{ h.chapter.volume }} Глава {{ h.chapter.number }} 
+                    <small style="color: #888;">({{ h.updated_at|date:"d.m.Y H:i" }})</small>
+                </li>
+            {% empty %}
+                <li>Вы еще ничего не читали</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

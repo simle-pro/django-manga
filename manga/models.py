@@ -22,6 +22,34 @@ class User(AbstractUser):
         verbose_name='Аватар'
     )
 
+    @property
+    def xp(self):
+        """Автоматический расчет XP пользователя"""
+        # Исправлено: обращаемся к reading_history вместо read_chapters
+        read_chapters_count = self.reading_history.count() if hasattr(self, 'reading_history') else 0
+        ratings_count = self.ratings.count() if hasattr(self, 'ratings') else 0
+        comments_count = self.comment_set.count() if hasattr(self, 'comment_set') else 0
+        completed_bookmarks = self.bookmarks.filter(status='completed').count() if hasattr(self, 'bookmarks') else 0
+
+        return (read_chapters_count * 1) + (ratings_count * 2) + (comments_count * 3) + (completed_bookmarks * 10)
+
+    @property
+    def level(self):
+        return (self.xp // 50) + 1
+
+    @property
+    def rank_name(self):
+        lvl = self.level
+        if lvl < 3:
+            return "Новичок"
+        elif lvl < 7:
+            return "Любитель манги"
+        elif lvl < 15:
+            return "Опытный читатель"
+        elif lvl < 30:
+            return "Манга-гуру"
+        return "Легенда"
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
@@ -142,12 +170,14 @@ class Bookmark(models.Model):
         ('favorite', 'Любимое'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
-    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='bookmarks')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks', verbose_name='Пользователь')
+    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='bookmarks', verbose_name='Тайтл')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Статус')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
     class Meta:
+        verbose_name = 'Закладка'
+        verbose_name_plural = 'Закладки'
         unique_together = ('user', 'title')
 
     def __str__(self):
@@ -155,11 +185,13 @@ class Bookmark(models.Model):
 
 
 class Rating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
-    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='ratings')
-    score = models.PositiveSmallIntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings', verbose_name='Пользователь')
+    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='ratings', verbose_name='Тайтл')
+    score = models.PositiveSmallIntegerField(verbose_name='Оценка')
 
     class Meta:
+        verbose_name = 'Рейтинг'
+        verbose_name_plural = 'Рейтинги'
         unique_together = ('user', 'title')
 
     def __str__(self):
@@ -167,23 +199,28 @@ class Rating(models.Model):
 
 
 class Comment(models.Model):
-    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='comments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='comments', verbose_name='Тайтл')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    text = models.TextField(verbose_name='Текст комментария')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies', verbose_name='Родительский комментарий')
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return f"{self.user.username} - {self.title.name}"
 
 
-
 class ReadingHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reading_history')
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reading_history', verbose_name='Пользователь')
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, verbose_name='Глава')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
 
     class Meta:
+        verbose_name = 'История чтения'
+        verbose_name_plural = 'История чтения'
         ordering = ['-updated_at']
         unique_together = ('user', 'chapter')
 
@@ -191,16 +228,17 @@ class ReadingHistory(models.Model):
         return f"{self.user.username} read {self.chapter}"
 
 
-
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name='Пользователь')
     title = models.CharField(max_length=255, verbose_name="Заголовок")
     message = models.TextField(verbose_name="Сообщение")
     link = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ссылка")
     is_read = models.BooleanField(default=False, verbose_name="Прочитано")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
+        verbose_name = 'Уведомление'
+        verbose_name_plural = 'Уведомления'
         ordering = ['-created_at']
 
     def __str__(self):

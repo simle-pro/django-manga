@@ -24,4 +24,5 @@ urlpatterns = [
     path('bookmarks/', views.my_bookmarks_view, name='my_bookmarks'),
     path('notifications/read-all/', views.mark_notifications_read, name='mark_notifications_read'),
     path('chapter/<int:chapter_id>/delete/', views.delete_chapter_view, name='delete_chapter'),
+    path('profile/', views.profile_view, name='profile'),
 ]
