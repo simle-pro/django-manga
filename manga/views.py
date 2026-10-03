@@ -67,13 +67,11 @@ def title_detail_view(request, slug):
         user_bookmark = Bookmark.objects.filter(user=request.user, title=title).first()
         user_rating = Rating.objects.filter(user=request.user, title=title).first()
 
-        # 1. Получаем список ID всех прочитанных глав этого тайтла для текущего пользователя
         read_chapter_ids = ReadingHistory.objects.filter(
             user=request.user, 
             chapter__title=title
         ).values_list('chapter_id', flat=True)
 
-        # 2. Находим последнюю прочитанную главу (для кнопки «Продолжить чтение»)
         last_history = ReadingHistory.objects.filter(
             user=request.user, 
             chapter__title=title
@@ -91,8 +89,8 @@ def title_detail_view(request, slug):
         'user_bookmark': user_bookmark,
         'user_rating': user_rating,
         'comment_form': comment_form,
-        'read_chapter_ids': read_chapter_ids,      # Передаем в шаблон
-        'last_read_chapter': last_read_chapter,    # Передаем в шаблон
+        'read_chapter_ids': read_chapter_ids,     
+        'last_read_chapter': last_read_chapter,  
     })
 
 
@@ -131,11 +129,7 @@ def create_title_view(request):
     return render(request, 'manga/create_title.html', {'form': form})
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
-from .models import Title, Chapter, Page, Bookmark, Notification  # Добавили Bookmark и Notification
-from .forms import ChapterForm, PageForm
+
 
 @login_required
 def add_chapter_view(request, slug):
@@ -180,8 +174,6 @@ def add_chapter_view(request, slug):
             ]
             Page.objects.bulk_create(pages_to_create)
 
-            # --- ОТПРАВКА УВЕДОМЛЕНИЙ ---
-            # Отправляем только при первом создании главы (created=True)
             if created:
                 bookmarks = Bookmark.objects.filter(
                     title=title,
@@ -195,12 +187,11 @@ def add_chapter_view(request, slug):
                         message=f"Вышла Том {chapter.volume} Глава {chapter.number}",
                         link=f"/manga/{title.slug}/read/{chapter.volume}/{chapter.number}/"
                     )
-                    for b in bookmarks if b.user != request.user  # Не отправляем автору, загрузившему главу
+                    for b in bookmarks if b.user != request.user  
                 ]
 
                 if notifications_to_create:
                     Notification.objects.bulk_create(notifications_to_create)
-            # ---------------------------
 
             return redirect('reader', slug=title.slug, volume=chapter.volume, number=chapter.number)
     else:
@@ -321,7 +312,6 @@ def reader(request, slug, volume, number):
     title = get_object_or_404(Title, slug=slug)
     chapter = get_object_or_404(Chapter, title=title, volume=volume, number=number)
     
-    # Сохраняем в историю, если пользователь авторизован
     if request.user.is_authenticated:
         ReadingHistory.objects.update_or_create(
             user=request.user,
@@ -362,7 +352,6 @@ def delete_chapter_view(request, chapter_id):
     chapter = get_object_or_404(Chapter, pk=chapter_id)
     title = chapter.title
 
-    # Проверка прав: Автор тайтла ИЛИ Администратор/Модератор
     is_author = (request.user == title.author)
     is_admin_or_staff = (getattr(request.user, 'role', '') == 'admin' or request.user.is_staff or request.user.is_superuser)
 
@@ -371,8 +360,6 @@ def delete_chapter_view(request, chapter_id):
         return redirect('title_detail', slug=title.slug)
 
     if request.method == 'POST':
-        # При удалении главы удалятся все связанные страницы (Page), 
-        # и сработает сигнал post_delete, который физически сотрет файлы из media/
         chapter.delete()
         messages.success(request, f"Глава Том {chapter.volume} №{chapter.number} и её файлы успешно удалены!")
         return redirect('title_detail', slug=title.slug)
@@ -382,9 +369,6 @@ def delete_chapter_view(request, chapter_id):
 
 
 
-# views.py
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -396,17 +380,14 @@ from .models import Bookmark, ReadingHistory
 def profile_view(request):
     user = request.user
     
-    # Обработка обновления аватарки
     if request.method == 'POST':
         if 'avatar' in request.FILES:
             user.avatar = request.FILES['avatar']
             user.save()
             return redirect('profile')
 
-    # Получаем закладки пользователя с группировкой по статусам
     bookmarks = Bookmark.objects.filter(user=user).select_related('title')
     
-    # Последние прочитанные главы
     history = ReadingHistory.objects.filter(user=user).select_related('chapter__title')[:10]
 
     context = {

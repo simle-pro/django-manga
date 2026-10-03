@@ -1,36 +1,234 @@
-<form method="post" enctype="multipart/form-data" id="upload-form">
-    {% csrf_token %}
-    
-    <h3>Данные главы</h3>
-    {{ chapter_form.as_p }}
+{% extends 'manga/base.html' %}
 
-    <h3>Страницы</h3>
-    {{ page_form.as_p }}
+{% block title %}Добавление главы — MangaSpace{% endblock %}
 
-    <div id="file-count" style="color: #4caf50; margin-bottom: 10px; font-weight: bold;"></div>
+{% block content %}
+<style>
+    .upload-container {
+        max-width: 680px;
+        margin: 40px auto;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
 
-    <button type="submit" id="submit-btn">Загрузить главу</button>
-</form>
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 16px;
+    }
+
+    .form-title i {
+        color: var(--accent);
+    }
+
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 20px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group p {
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group label {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .file-dropzone {
+        border: 2px dashed var(--border-highlight);
+        border-radius: var(--radius-md);
+        padding: 30px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+    }
+
+    .file-dropzone:hover, .file-dropzone.dragover {
+        border-color: var(--accent);
+        background: rgba(255, 42, 95, 0.05);
+    }
+
+    .file-dropzone i {
+        font-size: 2.5rem;
+        color: var(--accent);
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .file-dropzone p {
+        color: var(--text-main);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .file-dropzone span {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .file-errors {
+        color: #f87171;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+    .file-dropzone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    #file-count {
+        margin-top: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #10b981;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        margin-top: 28px;
+        padding: 14px;
+        font-size: 1rem;
+    }
+</style>
+
+<div class="upload-container">
+    <div class="form-title">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Загрузка новой главы
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+        
+        <div class="section-title">
+            <i class="fa-solid fa-list-ol"></i> Данные главы
+        </div>
+        <div class="form-group">
+            {{ chapter_form.as_p }}
+        </div>
+
+        <div class="section-title">
+            <i class="fa-solid fa-file-image"></i> Страницы главы
+        </div>
+        
+        <div class="file-dropzone" id="dropzone">
+            <i class="fa-solid fa-images"></i>
+            <p>Перетащите изображения сюда или нажмите для выбора</p>
+            <span>Поддерживаются PNG, JPG, WEBP</span>
+            
+            {{ page_form.images }}
+        </div>
+
+        {% if page_form.images.errors %}
+            <div class="file-errors">{{ page_form.images.errors }}</div>
+        {% endif %}
+
+        <div id="file-count"></div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary submit-btn">
+            <i class="fa-solid fa-upload"></i> <span id="btn-text">Загрузить главу</span>
+        </button>
+    </form>
+</div>
 
 <script>
-    const fileInput = document.querySelector('input[type="file"]');
-    const fileCount = document.getElementById('file-count');
-    const uploadForm = document.getElementById('upload-form');
-    const submitBtn = document.getElementById('submit-btn');
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = dropzone.querySelector('input[type="file"]');
+        const fileCount = document.getElementById('file-count');
+        const uploadForm = document.getElementById('upload-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
 
-    // Показываем количество выбранных файлов
-    fileInput.addEventListener('change', (e) => {
-        const count = e.target.files.length;
-        if (count > 0) {
-            fileCount.textContent = `Выбрано файлов: ${count}`;
-        } else {
-            fileCount.textContent = '';
-        }
-    });
+        const updateFileCount = (files) => {
+            const count = files.length;
+            fileCount.innerHTML = count
+                ? `<i class="fa-solid fa-circle-check"></i> Выбрано файлов: <strong>${count}</strong>`
+                : '';
+        };
 
-    // Изменяем текст кнопки при отправке, чтобы избежать двойных кликов
-    uploadForm.addEventListener('submit', () => {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Загрузка страниц на сервер...';
+        fileInput.addEventListener('change', () => updateFileCount(fileInput.files));
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            }, false);
+        });
+
+        dropzone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+        }, false);
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+
+            if (e.dataTransfer && e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileCount(fileInput.files);
+            }
+        }, false);
+
+        uploadForm.addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            submitBtn.style.cursor = 'not-allowed';
+            btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Загрузка страниц на сервер...';
+        });
     });
 </script>
+{% endblock %}

@@ -24,8 +24,6 @@ class User(AbstractUser):
 
     @property
     def xp(self):
-        """Автоматический расчет XP пользователя"""
-        # Исправлено: обращаемся к reading_history вместо read_chapters
         read_chapters_count = self.reading_history.count() if hasattr(self, 'reading_history') else 0
         ratings_count = self.ratings.count() if hasattr(self, 'ratings') else 0
         comments_count = self.comment_set.count() if hasattr(self, 'comment_set') else 0

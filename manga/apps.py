@@ -12,4 +12,4 @@ class MangaConfig(AppConfig):
     name = 'manga'
 
     def ready(self):
-        import manga.signals  # Регистрируем сигналы при запуске приложения
+        import manga.signals  

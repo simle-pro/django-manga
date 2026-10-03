@@ -1,60 +1,312 @@
 {% extends 'manga/base.html' %}
 
+{% block title %}Профиль пользователя — MangaSpace{% endblock %}
+
 {% block content %}
-<div class="profile-container" style="max-width: 900px; margin: 0 auto; padding: 20px;">
+<style>
+    .profile-wrapper {
+        max-width: 920px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        display: flex;
+        gap: 28px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        align-items: center;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--accent);
+        box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent) 0%, #ff527b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #fff;
+        box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--accent);
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .avatar-upload-btn:hover {
+        transform: scale(1.1);
+        background: #ff527b;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .user-username {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+    }
+
+    .user-role-tag {
+        padding: 3px 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .stat-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 2px;
+    }
+
+    .profile-section {
+        margin-top: 32px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+    }
+
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-header i {
+        color: var(--accent);
+    }
+
+    .profile-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .profile-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        transition: var(--transition);
+    }
+
+    .profile-list-item:hover {
+        background: rgba(255, 42, 95, 0.05);
+        border-color: var(--accent);
+    }
+
+    .item-link {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .item-link:hover {
+        color: var(--accent);
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        background: rgba(255, 42, 95, 0.15);
+        color: var(--accent);
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .empty-list-text {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        text-align: center;
+        padding: 20px 0;
+        margin: 0;
+    }
+
+    @media (max-width: 650px) {
+        .profile-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .user-header {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="profile-wrapper">
     <!-- Карточка профиля -->
-    <div style="display: flex; gap: 20px; background: #2a2a2a; color: #fff; padding: 20px; border-radius: 8px;">
-        <div>
+    <div class="profile-card">
+        <div class="avatar-wrapper">
             {% if user_profile.avatar %}
-                <img src="{{ user_profile.avatar.url }}" alt="Avatar" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%;">
+                <img src="{{ user_profile.avatar.url }}" alt="Avatar" class="avatar-img">
             {% else %}
-                <div style="width: 120px; height: 120px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    Нет фото
+                <div class="avatar-placeholder">
+                    {{ user_profile.username|slice:":1"|upper }}
                 </div>
             {% endif %}
-            
-            <form method="post" enctype="multipart/form-data" style="margin-top: 10px;">
+
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="file" name="avatar" accept="image/*" style="display: none;" id="avatar-input" onchange="this.form.submit()">
-                <label for="avatar-input" style="cursor: pointer; font-size: 12px; color: #4da6ff;">Сменить фото</label>
+                <label for="avatar-input" class="avatar-upload-btn" title="Сменить фото">
+                    <i class="fa-solid fa-camera"></i>
+                </label>
             </form>
         </div>
 
-        <div>
-            <h2>{{ user_profile.username }} <small style="font-size: 14px; color: #888;">({{ user_profile.get_role_display }})</small></h2>
-            <p><strong>Ранг:</strong> {{ user_profile.rank_name }} (Уровень {{ user_profile.level }})</p>
-            <p><strong>Очки опыта (XP):</strong> {{ user_profile.xp }} XP</p>
+        <div class="user-info">
+            <div class="user-header">
+                <h2 class="user-username">{{ user_profile.username }}</h2>
+                <span class="user-role-tag">{{ user_profile.get_role_display|default:"Читатель" }}</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label"><i class="fa-solid fa-trophy"></i> Ранг</div>
+                    <div class="stat-value">{{ user_profile.rank_name|default:"Новичок" }} <span style="font-size: 0.85rem; color: var(--text-muted);">(Ув. {{ user_profile.level|default:1 }})</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label"><i class="fa-solid fa-bolt"></i> Очки опыта</div>
+                    <div class="stat-value" style="color: var(--accent);">{{ user_profile.xp|default:0 }} XP</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Разделы: Закладки и История -->
-    <div style="margin-top: 30px;">
-        <h3>Мои закладки</h3>
-        <ul>
-            {% for b in bookmarks %}
-                <li>
-                    <a href="{% url 'title_detail' b.title.slug %}">{{ b.title.name }}</a> 
-                    — <strong>{{ b.get_status_display }}</strong>
-                </li>
-            {% empty %}
-                <li>Закладок пока нет</li>
-            {% endfor %}
-        </ul>
+    <!-- Мои закладки -->
+    <div class="profile-section">
+        <h3 class="section-header">
+            <i class="fa-solid fa-bookmark"></i> Мои закладки
+        </h3>
+        {% if bookmarks %}
+            <ul class="profile-list">
+                {% for b in bookmarks %}
+                    {% if b.title.slug %}
+                        <li class="profile-list-item">
+                            <a href="{% url 'title_detail' b.title.slug %}" class="item-link">
+                                <i class="fa-solid fa-book"></i> {{ b.title.name }}
+                            </a>
+                            <span class="status-badge">{{ b.get_status_display }}</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-list-text"><i class="fa-solid fa-folder-open"></i> Закладок пока нет</p>
+        {% endif %}
     </div>
 
-    <div style="margin-top: 30px;">
-        <h3>История чтения</h3>
-        <ul>
-            {% for h in history %}
-                <li>
-                    <a href="{% url 'title_detail' h.chapter.title.slug %}">{{ h.chapter.title.name }}</a> 
-                    — Том {{ h.chapter.volume }} Глава {{ h.chapter.number }} 
-                    <small style="color: #888;">({{ h.updated_at|date:"d.m.Y H:i" }})</small>
-                </li>
-            {% empty %}
-                <li>Вы еще ничего не читали</li>
-            {% endfor %}
-        </ul>
+    <!-- История чтения -->
+    <div class="profile-section">
+        <h3 class="section-header">
+            <i class="fa-solid fa-clock-rotate-left"></i> История чтения
+        </h3>
+        {% if history %}
+            <ul class="profile-list">
+                {% for h in history %}
+                    {% if h.chapter.title.slug %}
+                        <li class="profile-list-item">
+                            <a href="{% url 'title_detail' h.chapter.title.slug %}" class="item-link">
+                                <i class="fa-solid fa-book-open"></i> {{ h.chapter.title.name }} — Том {{ h.chapter.volume }} Глава {{ h.chapter.number }}
+                            </a>
+                            <span style="color: var(--text-muted); font-size: 0.82rem;">
+                                <i class="fa-regular fa-calendar"></i> {{ h.updated_at|date:"d.m.Y H:i" }}
+                            </span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-list-text"><i class="fa-solid fa-ghost"></i> Вы еще ничего не читали</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -1,35 +1,180 @@
 {% extends 'manga/base.html' %}
 
-{% block content %}
-<h2>Каталог манги и поиск</h2>
+{% block title %}Каталог манги — MangaSpace{% endblock %}
 
-<!-- Панель поиска и фильтрации -->
-<form method="get" action="{% url 'catalog' %}" style="display: flex; gap: 10px; margin-bottom: 25px;">
-    <input type="text" name="q" value="{{ query }}" placeholder="Поиск по названию или описанию..." style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff;">
-    <button type="submit" style="padding: 10px 20px; background: #e50914; color: white; border: none; border-radius: 4px; cursor: pointer;">Найти</button>
-</form>
+{% block content %}
+<style>
+    .catalog-header {
+        margin-bottom: 30px;
+    }
+
+    .catalog-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .catalog-title i {
+        color: var(--accent);
+    }
+
+    /* Панель поиска */
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        background: var(--bg-surface);
+        padding: 8px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-highlight);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .search-input:focus {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .search-btn {
+        padding: 0 28px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Пустое состояние */
+    .empty-catalog {
+        text-align: center;
+        padding: 70px 20px;
+        background: var(--bg-surface);
+        border: 1px dashed var(--border-highlight);
+        border-radius: var(--radius-lg);
+        margin-top: 20px;
+    }
+
+    .empty-catalog i {
+        font-size: 3.5rem;
+        color: var(--accent);
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .empty-catalog p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+
+    .add-title-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .add-title-link:hover {
+        background: #10b981;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+</style>
+
+<div class="catalog-header">
+    <div class="catalog-title">
+        <i class="fa-solid fa-compass"></i> Каталог манги
+    </div>
+
+    <!-- Панель поиска -->
+    <form method="get" action="{% url 'catalog' %}" class="search-bar">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ query|default:'' }}" class="search-input" placeholder="Поиск по названию или описанию...">
+        </div>
+        <button type="submit" class="btn btn-primary search-btn">
+            <i class="fa-solid fa-arrow-right"></i> Найти
+        </button>
+    </form>
+</div>
 
 <!-- Результаты -->
 {% if titles %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
+    <div class="manga-grid">
         {% for title in titles %}
             {% if title.slug %}
-                <div style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
-                    <a href="{% url 'title_detail' title.slug %}">
+                <a href="{% url 'title_detail' title.slug %}" class="manga-card">
+                    <div class="manga-poster">
                         {% if title.cover %}
-                            <img src="{{ title.cover.url }}" alt="{{ title.name }}" style="width: 100%; height: 240px; object-fit: cover; border-radius: 6px;">
+                            <img src="{{ title.cover.url }}" alt="{{ title.name }}">
+                        {% else %}
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#181b26; color:var(--text-muted);">
+                                <i class="fa-solid fa-image" style="font-size: 2rem;"></i>
+                            </div>
                         {% endif %}
-                        <h3 style="font-size: 1.1em; margin: 10px 0 5px 0; color: #fff;">{{ title.name }}</h3>
-                    </a>
-                    <p style="color: #888; font-size: 0.85em; margin: 0;">⭐ {{ title.average_rating|default:"0.0" }} / 10</p>
-                </div>
+                        <div class="manga-overlay">
+                            <div class="manga-badge">
+                                <i class="fa-solid fa-star"></i> {{ title.average_rating|default:"0.0" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="manga-info">
+                        <div class="manga-title">{{ title.name }}</div>
+                        <div class="manga-meta">
+                            <span><i class="fa-solid fa-book-open"></i> {{ title.type|default:"Манга" }}</span>
+                        </div>
+                    </div>
+                </a>
             {% endif %}
         {% endfor %}
     </div>
 {% else %}
-    <p style="color: #aaa; text-align: center; margin-top: 40px;">Ничего не найдено по вашему запросу.</p>
-{% if user.is_authenticated and user.role in 'author,admin' or user.is_superuser %}
-    <a href="{% url 'create_title' %}" style="color: #28a745;">Добавить новый тайтл?</a>
-{% endif %}
+    <div class="empty-catalog">
+        <i class="fa-solid fa-magnifying-glass-minus"></i>
+        <p>Ничего не найдено по вашему запросу</p>
+        
+        {% if user.is_authenticated %}
+            {% if user.role == 'author' or user.role == 'admin' or user.is_superuser %}
+                <a href="{% url 'create_title' %}" class="add-title-link">
+                    <i class="fa-solid fa-plus"></i> Добавить новый тайтл
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
 {% endif %}
 {% endblock %}

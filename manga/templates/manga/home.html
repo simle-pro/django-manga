@@ -1,31 +1,183 @@
 {% extends 'manga/base.html' %}
 
-{% block content %}
-    <h1>MangaLib Lite</h1>
-    <h2>Последние обновления</h2>
+{% block title %}MangaSpace — Главная{% endblock %}
 
-    {% if titles %}
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
-            {% for title in titles %}
-                {% if title.slug %}
-                    <div style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
-                        <a href="{% url 'title_detail' title.slug %}">
-                            {% if title.cover %}
-                                <img src="{{ title.cover.url }}" alt="{{ title.name }}" style="width: 100%; height: 240px; object-fit: cover; border-radius: 6px;">
-                            {% endif %}
-                            <h3 style="font-size: 1.1em; margin: 10px 0 5px 0; color: #fff;">{{ title.name }}</h3>
-                        </a>
-                        <p style="color: #888; font-size: 0.85em; margin: 0;">⭐ {{ title.average_rating }} / 10</p>
-                    </div>
-                {% endif %}
-            {% endfor %}
+{% block content %}
+<style>
+    /* Герой-секция и поиск для главной */
+    .home-hero {
+        margin-bottom: 32px;
+    }
+
+    .home-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .home-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+    }
+
+    .home-title i {
+        color: var(--accent);
+    }
+
+    /* Панель поиска */
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        background: var(--bg-surface);
+        padding: 8px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-highlight);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .search-input:focus {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .search-btn {
+        padding: 0 28px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Улучшенный вид карточек */
+    .manga-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .manga-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Пустое состояние */
+    .empty-state {
+        text-align: center;
+        padding: 70px 20px;
+        background: var(--bg-surface);
+        border: 1px dashed var(--border-highlight);
+        border-radius: var(--radius-lg);
+        margin-top: 20px;
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: var(--accent);
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="home-hero">
+    <div class="home-header">
+        <h1 class="home-title">
+            <i class="fa-solid fa-fire"></i> Популярное и новое
+        </h1>
+    </div>
+
+    <!-- Поисковая строка на главной (перенаправляет в каталог) -->
+    <form method="get" action="{% url 'catalog' %}" class="search-bar">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" class="search-input" placeholder="Найти мангу по названию или описанию...">
         </div>
-    {% else %}
-        <p style="color: #888; font-style: italic;">
-            Тайтлов пока нет. 
-            {% if user.is_authenticated and user.role in 'author,admin' or user.is_superuser %}
-                <a href="{% url 'create_title' %}" style="color: #28a745;">Добавьте первый тайтл!</a>
+        <button type="submit" class="btn btn-primary search-btn">
+            <i class="fa-solid fa-arrow-right"></i> Найти
+        </button>
+    </form>
+</div>
+
+<!-- Сетка тайтлов -->
+{% if titles %}
+    <div class="manga-grid">
+        {% for title in titles %}
+            {% if title.slug %}
+                <a href="{% url 'title_detail' title.slug %}" class="manga-card">
+                    <div class="manga-poster">
+                        {% if title.cover %}
+                            <img src="{{ title.cover.url }}" alt="{{ title.name }}">
+                        {% else %}
+                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#181b26; color:var(--text-muted);">
+                                <i class="fa-solid fa-image" style="font-size: 2rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="manga-overlay">
+                            <div class="manga-badge">
+                                <i class="fa-solid fa-star"></i> {{ title.average_rating|default:"0.0" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="manga-info">
+                        <div class="manga-title">{{ title.name }}</div>
+                        <div class="manga-meta">
+                            <span><i class="fa-solid fa-book-open"></i> {{ title.type|default:"Манга" }}</span>
+                        </div>
+                    </div>
+                </a>
             {% endif %}
-        </p>
-    {% endif %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-ghost"></i>
+        <p>Тайтлов пока нет.</p>
+        {% if user.is_authenticated %}
+            {% if user.role == 'author' or user.role == 'admin' or user.is_superuser %}
+                <a href="{% url 'create_title' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-plus"></i> Добавьте первый тайтл!
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endif %}
 {% endblock %}

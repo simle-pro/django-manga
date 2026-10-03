@@ -1,41 +1,158 @@
 {% extends 'manga/base.html' %}
 
+{% block title %}Мой профиль — MangaSpace{% endblock %}
+
 {% block content %}
 <style>
-    /* ПК-версия: двухколоночный сетка */
+    /* Двухколоночный макет */
     .bookmarks-layout {
         display: flex;
-        gap: 25px;
+        gap: 30px;
         align-items: flex-start;
     }
 
-    /* Фиксированная боковая панель для ПК */
-    .sidebar {
-        width: 260px;
+    /* Боковая панель профиля */
+    .profile-sidebar {
+        width: 280px;
         flex-shrink: 0;
-        background: #1e1e1e;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #2a2a2a;
+        background: var(--bg-surface);
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-highlight);
         position: sticky;
-        top: 80px; /* Липнет при скролле ПК */
+        top: 90px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
     }
 
+    .user-avatar-circle {
+        width: 76px;
+        height: 76px;
+        background: linear-gradient(135deg, var(--accent) 0%, #ff527b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 auto 12px auto;
+        box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .user-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 4px;
+    }
+
+    .user-role-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    .sidebar-divider {
+        border: 0;
+        border-top: 1px solid var(--border-color);
+        margin: 20px 0;
+    }
+
+    .sidebar-section-title {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    /* Список фильтров категорий */
     .status-list {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
     }
 
     .status-link {
         padding: 10px 14px;
-        border-radius: 8px;
+        border-radius: var(--radius-md);
         text-decoration: none;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        font-size: 0.95em;
-        transition: background 0.2s;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: var(--transition);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+    }
+
+    .status-link:hover {
+        background: rgba(255, 42, 95, 0.1);
+        border-color: var(--accent);
+        color: #fff;
+    }
+
+    .status-link.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .status-link-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .manage-titles-btn {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .manage-titles-btn:hover {
+        background: #10b981;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Основная секция */
+    .bookmarks-main {
+        flex: 1;
+        width: 100%;
+    }
+
+    .section-header-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     /* Мобильная адаптация */
@@ -43,95 +160,135 @@
         .bookmarks-layout {
             flex-direction: column;
         }
-        .sidebar {
+
+        .profile-sidebar {
             width: 100%;
             position: static;
-            margin-bottom: 20px;
+            box-sizing: border-box;
         }
+
         .status-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 8px;
         }
+
         .status-link {
             justify-content: center;
             text-align: center;
-            font-size: 0.85em;
-            padding: 8px;
+            font-size: 0.85rem;
+            padding: 10px 8px;
+        }
+
+        .status-link-content {
+            flex-direction: column;
+            gap: 4px;
         }
     }
 </style>
 
 <div class="bookmarks-layout">
     
-    <!-- Боковая панель -->
-    <aside class="sidebar">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="width: 70px; height: 70px; background: #e50914; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; margin: 0 auto 10px auto; color: white; font-weight: bold;">
+    <!-- Боковая панель пользователя -->
+    <aside class="profile-sidebar">
+        <div style="text-align: center;">
+            <div class="user-avatar-circle">
                 {{ user.username|slice:":1"|upper }}
             </div>
-            <h3 style="margin: 5px 0; color: #fff;">{{ user.username }}</h3>
-            <span style="color: #aaa; font-size: 0.85em;">
+            <div class="user-name">{{ user.username }}</div>
+            <div class="user-role-badge">
                 {% if user.role == 'admin' or user.is_superuser %} Администратор
                 {% elif user.role == 'author' %} Автор / Переводчик
                 {% else %} Читатель {% endif %}
-            </span>
+            </div>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+        <hr class="sidebar-divider">
 
-        <h4 style="color: #888; font-size: 0.8em; text-transform: uppercase; margin-bottom: 10px;">Категории закладок</h4>
+        <div class="sidebar-section-title">Категории закладок</div>
 
         <!-- Фильтры категорий -->
         <div class="status-list">
             {% for code, name in status_choices %}
                 <a href="?status={{ code }}" 
-                   class="status-link"
-                   style="{% if current_status == code %} background: #e50914; color: #fff; font-weight: bold; {% else %} background: #2a2a2a; color: #ccc; {% endif %}">
-                    <span>
-                        {% if code == 'reading' %}📖{% elif code == 'planned' %}📌{% elif code == 'completed' %}✅{% elif code == 'favorite' %}❤️{% else %}❌{% endif %}
-                        {{ name }}
-                    </span>
+                   class="status-link {% if current_status == code %}active{% endif %}">
+                    <div class="status-link-content">
+                        {% if code == 'reading' %}
+                            <i class="fa-solid fa-book-open"></i>
+                        {% elif code == 'planned' %}
+                            <i class="fa-solid fa-bookmark"></i>
+                        {% elif code == 'completed' %}
+                            <i class="fa-solid fa-circle-check"></i>
+                        {% elif code == 'favorite' %}
+                            <i class="fa-solid fa-heart"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        {% endif %}
+                        <span>{{ name }}</span>
+                    </div>
                 </a>
             {% endfor %}
         </div>
 
-        {% if user.role in 'author,admin' or user.is_superuser %}
-            <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
-            <a href="{% url 'my_titles' %}" class="btn btn-success" style="width: 100%; display: block; text-align: center;">
-                ➕ Управление тайтлами
+        {% if user.role == 'author' or user.role == 'admin' or user.is_superuser %}
+            <hr class="sidebar-divider">
+            <a href="{% url 'my_titles' %}" class="manage-titles-btn">
+                <i class="fa-solid fa-bars-progress"></i> Мои тайтлы
             </a>
         {% endif %}
     </aside>
 
-    <!-- Основная сетка карточек -->
-    <main style="flex: 1; width: 100%;">
-        <h2 style="margin-top: 0; border-bottom: 2px solid #e50914; padding-bottom: 10px; color: #fff;">
+    <!-- Основная сетка закладок -->
+    <main class="bookmarks-main">
+        <h2 class="section-header-title">
             {% for code, name in status_choices %}
-                {% if current_status == code %}{{ name }}{% endif %}
+                {% if current_status == code %}
+                    {% if code == 'reading' %}<i class="fa-solid fa-book-open" style="color:var(--accent);"></i>
+                    {% elif code == 'planned' %}<i class="fa-solid fa-bookmark" style="color:var(--accent);"></i>
+                    {% elif code == 'completed' %}<i class="fa-solid fa-circle-check" style="color:var(--accent);"></i>
+                    {% elif code == 'favorite' %}<i class="fa-solid fa-heart" style="color:var(--accent);"></i>
+                    {% else %}<i class="fa-solid fa-circle-xmark" style="color:var(--accent);"></i>{% endif %}
+                    {{ name }}
+                {% endif %}
             {% endfor %}
         </h2>
 
         {% if bookmarks %}
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; margin-top: 20px;">
+            <div class="manga-grid">
                 {% for bookmark in bookmarks %}
                     {% if bookmark.title.slug %}
-                        <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #2a2a2a; text-align: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                            <a href="{% url 'title_detail' bookmark.title.slug %}" style="text-decoration: none;">
+                        <a href="{% url 'title_detail' bookmark.title.slug %}" class="manga-card">
+                            <div class="manga-poster">
                                 {% if bookmark.title.cover %}
-                                    <img src="{{ bookmark.title.cover.url }}" alt="{{ bookmark.title.name }}" style="width: 100%; height: 210px; object-fit: cover; border-radius: 6px;">
+                                    <img src="{{ bookmark.title.cover.url }}" alt="{{ bookmark.title.name }}">
+                                {% else %}
+                                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#181b26; color:var(--text-muted);">
+                                        <i class="fa-solid fa-image" style="font-size: 2rem;"></i>
+                                    </div>
                                 {% endif %}
-                                <h4 style="font-size: 0.9em; margin: 10px 0 5px 0; color: #fff; line-height: 1.2;">{{ bookmark.title.name }}</h4>
-                            </a>
-                            <p style="color: #888; font-size: 0.8em; margin: 0;">⭐ {{ bookmark.title.average_rating|default:"0.0" }} / 10</p>
-                        </div>
+                                <div class="manga-overlay">
+                                    <div class="manga-badge">
+                                        <i class="fa-solid fa-star"></i> {{ bookmark.title.average_rating|default:"0.0" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="manga-info">
+                                <div class="manga-title">{{ bookmark.title.name }}</div>
+                                <div class="manga-meta">
+                                    <span><i class="fa-solid fa-book-open"></i> {{ bookmark.title.type|default:"Манга" }}</span>
+                                </div>
+                            </div>
+                        </a>
                     {% endif %}
                 {% endfor %}
             </div>
         {% else %}
-            <div style="background: #1e1e1e; padding: 40px 20px; text-align: center; border-radius: 8px; margin-top: 20px; color: #888;">
-                <p style="font-size: 1.1em; margin: 0;">В этой категории закладок пока ничего нет.</p>
-                <a href="{% url 'catalog' %}" style="display: inline-block; margin-top: 15px; color: #e50914; text-decoration: underline;">Перейти в каталог</a>
+            <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border: 1px dashed var(--border-highlight); border-radius: var(--radius-lg); margin-top: 10px;">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--accent); margin-bottom: 16px; display: block;"></i>
+                <p style="color: var(--text-muted); font-size: 1.05rem; margin-bottom: 16px;">В этой категории закладок пока ничего нет.</p>
+                <a href="{% url 'catalog' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-compass"></i> Перейти в каталог
+                </a>
             </div>
         {% endif %}
     </main>
