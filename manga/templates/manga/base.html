@@ -162,6 +162,56 @@
         {% block content %}
         {% endblock %}
     </div>
+    {% if user.is_authenticated %}
+    <!-- Выпадающее меню уведомлений -->
+    <div style="position: relative; display: inline-block;">
+        <button onclick="toggleNotifications()" style="background: #2a2a2a; border: 1px solid #444; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; position: relative;">
+            🔔
+            {% if unread_notifications_count > 0 %}
+                <span id="notif-badge" style="position: absolute; top: -5px; right: -5px; background: #e50914; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7em; font-weight: bold;">
+                    {{ unread_notifications_count }}
+                </span>
+            {% endif %}
+        </button>
+
+        <div id="notif-dropdown" style="display: none; position: absolute; right: 0; top: 40px; width: 300px; background: #1e1e1e; border: 1px solid #333; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 1000; padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+                <strong style="color: #fff; font-size: 0.9em;">Уведомления</strong>
+                <small onclick="readAllNotifications()" style="color: #888; cursor: pointer; font-size: 0.8em;">Прочитать все</small>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                {% for n in latest_notifications %}
+                    <a href="{{ n.link|default:'#' }}" style="text-decoration: none; background: {% if not n.is_read %}#2a2a2a{% else %}#151515{% endif %}; padding: 8px; border-radius: 6px; display: block;">
+                        <div style="color: #fff; font-size: 0.85em; font-weight: bold;">{{ n.title }}</div>
+                        <div style="color: #aaa; font-size: 0.8em;">{{ n.message }}</div>
+                        <small style="color: #666; font-size: 0.7em;">{{ n.created_at|date:"d.m H:i" }}</small>
+                    </a>
+                {% empty %}
+                    <div style="color: #777; font-size: 0.85em; text-align: center; padding: 10px;">Нет новых уведомлений</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notif-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function readAllNotifications() {
+            fetch("{% url 'mark_notifications_read' %}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        const badge = document.getElementById('notif-badge');
+                        if (badge) badge.remove();
+                    }
+                });
+        }
+    </script>
+{% endif %}
 
     <!-- JS для переключения мобильного меню -->
     <script>

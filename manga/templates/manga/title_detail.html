@@ -55,7 +55,7 @@
                     </select>
                 </form>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-secondary" style="width: 100%; display: block;">Войдите для закладок</a>
+                <a href="{% url 'login' %}" class="btn btn-secondary" style="width: 100%; display: block; text-align: center; text-decoration: none; padding: 10px; background: #333; color: #fff; border-radius: 6px;">Войдите для закладок</a>
             {% endif %}
         </div>
 
@@ -103,21 +103,50 @@
 
         <hr style="border: 0; border-top: 1px solid #333; margin: 25px 0;">
 
-        <!-- Главы -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3>Главы ({{ chapters.count }})</h3>
-            {% if user == title.author or user.role == 'admin' or user.is_superuser %}
-                <a href="{% url 'add_chapter' title.slug %}" class="btn btn-success" style="font-size: 0.85em;">+ Добавить главу</a>
-            {% endif %}
+        <!-- Секция глав -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">Главы ({{ chapters.count }})</h3>
+            
+            <div style="display: flex; gap: 10px; align-items: center;">
+                {% if user.is_authenticated and last_read_chapter %}
+                    <a href="{% url 'reader' title.slug last_read_chapter.volume last_read_chapter.number %}" class="btn btn-primary" style="font-size: 0.85em; text-decoration: none; padding: 6px 12px; background: #007bff; color: #fff; border-radius: 4px;">
+                        ▶ Продолжить (Т. {{ last_read_chapter.volume }} Гл. {{ last_read_chapter.number }})
+                    </a>
+                {% endif %}
+
+                {% if user == title.author or user.role == 'admin' or user.is_superuser or user.is_staff %}
+                    <a href="{% url 'add_chapter' title.slug %}" class="btn btn-success" style="font-size: 0.85em; text-decoration: none; padding: 6px 12px; background: #28a745; color: #fff; border-radius: 4px;">+ Добавить главу</a>
+                {% endif %}
+            </div>
         </div>
 
         {% if chapters %}
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 {% for chapter in chapters %}
-                    <a href="{% url 'reader' title.slug chapter.volume chapter.number %}" style="display: flex; justify-content: space-between; background: #1e1e1e; padding: 12px 15px; border-radius: 6px; color: #fff; text-decoration: none;">
-                        <span>Том {{ chapter.volume }} Глава {{ chapter.number }} {% if chapter.name %}— {{ chapter.name }}{% endif %}</span>
-                        <span style="color: #777; font-size: 0.85em;">{{ chapter.created_at|date:"d.m.Y" }}</span>
-                    </a>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 6px; {% if chapter.id in read_chapter_ids %} background: #151515; border: 1px solid #222; {% else %} background: #1e1e1e; {% endif %}">
+                        
+                        <a href="{% url 'reader' title.slug chapter.volume chapter.number %}" style="text-decoration: none; flex-grow: 1; display: flex; justify-content: space-between; align-items: center; margin-right: 15px; {% if chapter.id in read_chapter_ids %} color: #777; {% else %} color: #fff; {% endif %}">
+                            <span>
+                                {% if chapter.id in read_chapter_ids %}
+                                    <span style="color: #28a745; margin-right: 5px;">✓</span>
+                                {% endif %}
+                                Том {{ chapter.volume }} Глава {{ chapter.number }} {% if chapter.name %}— {{ chapter.name }}{% endif %}
+                            </span>
+                            <span style="font-size: 0.85em; color: #666;">
+                                {% if chapter.id in read_chapter_ids %} Прочитано {% else %} {{ chapter.created_at|date:"d.m.Y" }} {% endif %}
+                            </span>
+                        </a>
+
+                        <!-- Кнопка удаления главы -->
+                        {% if user == title.author or user.is_staff or user.role == 'admin' or user.is_superuser %}
+                            <form action="{% url 'delete_chapter' chapter.id %}" method="post" style="display:inline; margin: 0;" onsubmit="return confirm('Вы уверены, что хотите удалить эту главу и все её страницы?');">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+                                    🗑 Удалить
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         {% else %}
@@ -126,7 +155,7 @@
 
         <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
 
-        <!-- Отзывы -->
+        <!-- Отзывы / Комментарии -->
         <h3>Комментарии</h3>
         {% if user.is_authenticated %}
             <form method="post" action="{% url 'add_comment' title.slug %}" style="margin-bottom: 25px;">
@@ -153,40 +182,3 @@
     </div>
 </div>
 {% endblock %}
-
-<!-- Блок Глав -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <h3>Главы ({{ chapters.count }})</h3>
-    
-    {% if user.is_authenticated and last_read_chapter %}
-        <a href="{% url 'reader' title.slug last_read_chapter.volume last_read_chapter.number %}" class="btn btn-primary" style="font-size: 0.9em;">
-            ▶ Продолжить (Том {{ last_read_chapter.volume }} Гл. {{ last_read_chapter.number }})
-        </a>
-    {% endif %}
-
-    {% if user == title.author or user.role == 'admin' or user.is_superuser %}
-        <a href="{% url 'add_chapter' title.slug %}" class="btn btn-success" style="font-size: 0.85em;">+ Добавить главу</a>
-    {% endif %}
-</div>
-
-{% if chapters %}
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-        {% for chapter in chapters %}
-            <a href="{% url 'reader' title.slug chapter.volume chapter.number %}" 
-               style="display: flex; justify-content: space-between; padding: 12px 15px; border-radius: 6px; text-decoration: none;
-                      {% if chapter.id in read_chapter_ids %} background: #151515; color: #777; border: 1px solid #222; {% else %} background: #1e1e1e; color: #fff; {% endif %}">
-                <span>
-                    {% if chapter.id in read_chapter_ids %}
-                        <span style="color: #28a745; margin-right: 5px;">✓</span>
-                    {% endif %}
-                    Том {{ chapter.volume }} Глава {{ chapter.number }} {% if chapter.name %}— {{ chapter.name }}{% endif %}
-                </span>
-                <span style="font-size: 0.85em; color: #666;">
-                    {% if chapter.id in read_chapter_ids %} Прочитано {% else %} {{ chapter.created_at|date:"d.m.Y" }} {% endif %}
-                </span>
-            </a>
-        {% endfor %}
-    </div>
-{% else %}
-    <p style="color: #777; font-style: italic;">Глав пока нет.</p>
-{% endif %}

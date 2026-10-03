@@ -131,6 +131,12 @@ def create_title_view(request):
     return render(request, 'manga/create_title.html', {'form': form})
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from .models import Title, Chapter, Page, Bookmark, Notification  # Добавили Bookmark и Notification
+from .forms import ChapterForm, PageForm
+
 @login_required
 def add_chapter_view(request, slug):
     title = get_object_or_404(Title, slug=slug)
@@ -174,6 +180,28 @@ def add_chapter_view(request, slug):
             ]
             Page.objects.bulk_create(pages_to_create)
 
+            # --- ОТПРАВКА УВЕДОМЛЕНИЙ ---
+            # Отправляем только при первом создании главы (created=True)
+            if created:
+                bookmarks = Bookmark.objects.filter(
+                    title=title,
+                    status__in=['reading', 'favorite']
+                ).select_related('user')
+
+                notifications_to_create = [
+                    Notification(
+                        user=b.user,
+                        title=f"Новая глава в «{title.name}»!",
+                        message=f"Вышла Том {chapter.volume} Глава {chapter.number}",
+                        link=f"/manga/{title.slug}/read/{chapter.volume}/{chapter.number}/"
+                    )
+                    for b in bookmarks if b.user != request.user  # Не отправляем автору, загрузившему главу
+                ]
+
+                if notifications_to_create:
+                    Notification.objects.bulk_create(notifications_to_create)
+            # ---------------------------
+
             return redirect('reader', slug=title.slug, volume=chapter.volume, number=chapter.number)
     else:
         chapter_form = ChapterForm()
@@ -184,7 +212,6 @@ def add_chapter_view(request, slug):
         'chapter_form': chapter_form,
         'page_form': page_form
     })
-
 
 def register_view(request):
     if request.method == 'POST':
@@ -311,3 +338,43 @@ def reader(request, slug, volume, number):
         'prev_chapter': prev_chapter,
     }
     return render(request, 'manga/reader.html', context)
+
+
+#сделано через ИИ
+from django.http import JsonResponse
+
+@login_required
+def mark_notifications_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'ok'})
+
+
+
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Chapter
+
+@login_required
+def delete_chapter_view(request, chapter_id):
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    title = chapter.title
+
+    # Проверка прав: Автор тайтла ИЛИ Администратор/Модератор
+    is_author = (request.user == title.author)
+    is_admin_or_staff = (getattr(request.user, 'role', '') == 'admin' or request.user.is_staff or request.user.is_superuser)
+
+    if not (is_author or is_admin_or_staff):
+        messages.error(request, "У вас нет прав на удаление этой главы.")
+        return redirect('title_detail', slug=title.slug)
+
+    if request.method == 'POST':
+        # При удалении главы удалятся все связанные страницы (Page), 
+        # и сработает сигнал post_delete, который физически сотрет файлы из media/
+        chapter.delete()
+        messages.success(request, f"Глава Том {chapter.volume} №{chapter.number} и её файлы успешно удалены!")
+        return redirect('title_detail', slug=title.slug)
+
+    return redirect('title_detail', slug=title.slug)
