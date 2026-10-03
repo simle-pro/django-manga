@@ -1,0 +1,31 @@
+{% extends 'manga/base.html' %}
+
+{% block content %}
+    <h1>MangaLib Lite</h1>
+    <h2>Последние обновления</h2>
+
+    {% if titles %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
+            {% for title in titles %}
+                {% if title.slug %}
+                    <div style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
+                        <a href="{% url 'title_detail' title.slug %}">
+                            {% if title.cover %}
+                                <img src="{{ title.cover.url }}" alt="{{ title.name }}" style="width: 100%; height: 240px; object-fit: cover; border-radius: 6px;">
+                            {% endif %}
+                            <h3 style="font-size: 1.1em; margin: 10px 0 5px 0; color: #fff;">{{ title.name }}</h3>
+                        </a>
+                        <p style="color: #888; font-size: 0.85em; margin: 0;">⭐ {{ title.average_rating }} / 10</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #888; font-style: italic;">
+            Тайтлов пока нет. 
+            {% if user.is_authenticated and user.role in 'author,admin' or user.is_superuser %}
+                <a href="{% url 'create_title' %}" style="color: #28a745;">Добавьте первый тайтл!</a>
+            {% endif %}
+        </p>
+    {% endif %}
+{% endblock %}

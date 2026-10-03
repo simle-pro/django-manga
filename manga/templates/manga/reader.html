@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title.name }} — Том {{ chapter.volume }} Глава {{ chapter.number }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #0f0f0f; color: #fff; margin: 0; padding: 0; }
+        .reader-header { position: sticky; top: 0; background: #1e1e1e; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; z-index: 100; }
+        .reader-header a { color: #fff; text-decoration: none; }
+        .pages-container { max-width: 800px; margin: 20px auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .pages-container img { width: 100%; height: auto; border-radius: 4px; display: block; }
+        .no-pages { text-align: center; padding: 50px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="reader-header">
+    <a href="{% url 'title_detail' title.slug %}">← К тайтлу</a>
+    <div>
+        <strong>{{ title.name }}</strong> — Том {{ chapter.volume }} Глава {{ chapter.number }}
+    </div>
+    <div>
+        {% if prev_chapter %}
+            <a href="{% url 'reader' title.slug prev_chapter.volume prev_chapter.number %}" style="margin-right: 15px;">← Пред.</a>
+        {% endif %}
+        {% if next_chapter %}
+            <a href="{% url 'reader' title.slug next_chapter.volume next_chapter.number %}">След. →</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="pages-container">
+    {% for page in pages %}
+        <img src="{{ page.image.url }}" alt="Страница {{ page.page_number }}">
+    {% empty %}
+        <div class="no-pages">
+            <h3>В этой главе пока нет страниц.</h3>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>

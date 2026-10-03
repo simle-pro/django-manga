@@ -1,0 +1,36 @@
+<form method="post" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    
+    <h3>Данные главы</h3>
+    {{ chapter_form.as_p }}
+
+    <h3>Страницы</h3>
+    {{ page_form.as_p }}
+
+    <div id="file-count" style="color: #4caf50; margin-bottom: 10px; font-weight: bold;"></div>
+
+    <button type="submit" id="submit-btn">Загрузить главу</button>
+</form>
+
+<script>
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileCount = document.getElementById('file-count');
+    const uploadForm = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Показываем количество выбранных файлов
+    fileInput.addEventListener('change', (e) => {
+        const count = e.target.files.length;
+        if (count > 0) {
+            fileCount.textContent = `Выбрано файлов: ${count}`;
+        } else {
+            fileCount.textContent = '';
+        }
+    });
+
+    // Изменяем текст кнопки при отправке, чтобы избежать двойных кликов
+    uploadForm.addEventListener('submit', () => {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Загрузка страниц на сервер...';
+    });
+</script>

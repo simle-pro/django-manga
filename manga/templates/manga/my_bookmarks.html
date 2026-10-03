@@ -1,0 +1,140 @@
+{% extends 'manga/base.html' %}
+
+{% block content %}
+<style>
+    /* ПК-версия: двухколоночный сетка */
+    .bookmarks-layout {
+        display: flex;
+        gap: 25px;
+        align-items: flex-start;
+    }
+
+    /* Фиксированная боковая панель для ПК */
+    .sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        background: #1e1e1e;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #2a2a2a;
+        position: sticky;
+        top: 80px; /* Липнет при скролле ПК */
+    }
+
+    .status-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .status-link {
+        padding: 10px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95em;
+        transition: background 0.2s;
+    }
+
+    /* Мобильная адаптация */
+    @media (max-width: 850px) {
+        .bookmarks-layout {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            position: static;
+            margin-bottom: 20px;
+        }
+        .status-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 8px;
+        }
+        .status-link {
+            justify-content: center;
+            text-align: center;
+            font-size: 0.85em;
+            padding: 8px;
+        }
+    }
+</style>
+
+<div class="bookmarks-layout">
+    
+    <!-- Боковая панель -->
+    <aside class="sidebar">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 70px; height: 70px; background: #e50914; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; margin: 0 auto 10px auto; color: white; font-weight: bold;">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+            <h3 style="margin: 5px 0; color: #fff;">{{ user.username }}</h3>
+            <span style="color: #aaa; font-size: 0.85em;">
+                {% if user.role == 'admin' or user.is_superuser %} Администратор
+                {% elif user.role == 'author' %} Автор / Переводчик
+                {% else %} Читатель {% endif %}
+            </span>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+
+        <h4 style="color: #888; font-size: 0.8em; text-transform: uppercase; margin-bottom: 10px;">Категории закладок</h4>
+
+        <!-- Фильтры категорий -->
+        <div class="status-list">
+            {% for code, name in status_choices %}
+                <a href="?status={{ code }}" 
+                   class="status-link"
+                   style="{% if current_status == code %} background: #e50914; color: #fff; font-weight: bold; {% else %} background: #2a2a2a; color: #ccc; {% endif %}">
+                    <span>
+                        {% if code == 'reading' %}📖{% elif code == 'planned' %}📌{% elif code == 'completed' %}✅{% elif code == 'favorite' %}❤️{% else %}❌{% endif %}
+                        {{ name }}
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+
+        {% if user.role in 'author,admin' or user.is_superuser %}
+            <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+            <a href="{% url 'my_titles' %}" class="btn btn-success" style="width: 100%; display: block; text-align: center;">
+                ➕ Управление тайтлами
+            </a>
+        {% endif %}
+    </aside>
+
+    <!-- Основная сетка карточек -->
+    <main style="flex: 1; width: 100%;">
+        <h2 style="margin-top: 0; border-bottom: 2px solid #e50914; padding-bottom: 10px; color: #fff;">
+            {% for code, name in status_choices %}
+                {% if current_status == code %}{{ name }}{% endif %}
+            {% endfor %}
+        </h2>
+
+        {% if bookmarks %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; margin-top: 20px;">
+                {% for bookmark in bookmarks %}
+                    {% if bookmark.title.slug %}
+                        <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #2a2a2a; text-align: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                            <a href="{% url 'title_detail' bookmark.title.slug %}" style="text-decoration: none;">
+                                {% if bookmark.title.cover %}
+                                    <img src="{{ bookmark.title.cover.url }}" alt="{{ bookmark.title.name }}" style="width: 100%; height: 210px; object-fit: cover; border-radius: 6px;">
+                                {% endif %}
+                                <h4 style="font-size: 0.9em; margin: 10px 0 5px 0; color: #fff; line-height: 1.2;">{{ bookmark.title.name }}</h4>
+                            </a>
+                            <p style="color: #888; font-size: 0.8em; margin: 0;">⭐ {{ bookmark.title.average_rating|default:"0.0" }} / 10</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="background: #1e1e1e; padding: 40px 20px; text-align: center; border-radius: 8px; margin-top: 20px; color: #888;">
+                <p style="font-size: 1.1em; margin: 0;">В этой категории закладок пока ничего нет.</p>
+                <a href="{% url 'catalog' %}" style="display: inline-block; margin-top: 15px; color: #e50914; text-decoration: underline;">Перейти в каталог</a>
+            </div>
+        {% endif %}
+    </main>
+
+</div>
+{% endblock %}
