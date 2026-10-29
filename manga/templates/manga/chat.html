@@ -1,0 +1,442 @@
+{% extends 'manga/base.html' %}
+
+{% block title %}{% if partner %}Чат с {{ partner.username }}{% else %}Сообщения{% endif %} — MangaSpace{% endblock %}
+
+{% block content %}
+<style>
+    .chat-page {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 18px;
+        margin-top: 24px;
+        min-height: 60vh;
+    }
+
+    .chat-side, .chat-window {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-side-head, .chat-head {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+
+    .chat-side-head i, .chat-head i {
+        color: var(--accent-text);
+        margin-right: 8px;
+    }
+
+    .chat-dialog-list {
+        overflow-y: auto;
+        max-height: 62vh;
+    }
+
+    .chat-dialog {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+
+    .chat-dialog:hover, .chat-dialog.active {
+        background: rgba(var(--accent-rgb), 0.1);
+    }
+
+    .chat-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--fill-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--accent-text);
+        flex-shrink: 0;
+        border: 1px solid var(--border-color);
+    }
+
+    .chat-dialog-info {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .chat-dialog-name {
+        font-weight: 700;
+        font-size: 0.92rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-dialog-last {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-unread {
+        background: var(--accent);
+        color: var(--on-accent);
+        border-radius: 12px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chat-empty-side, .chat-notice {
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .chat-empty-side i, .chat-notice i {
+        display: block;
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: var(--accent-text);
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 18px;
+        overflow-y: auto;
+        max-height: 56vh;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: var(--bg-inset, rgba(0, 0, 0, 0.15));
+    }
+
+    .msg {
+        max-width: 72%;
+        padding: 9px 13px;
+        border-radius: 14px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        border: 1px solid var(--border-color);
+        background: var(--bg-surface);
+        color: var(--text-main);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+
+    .msg.mine {
+        align-self: flex-end;
+        background: rgba(var(--accent-rgb), 0.18);
+        border-color: rgba(var(--accent-rgb), 0.45);
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 4px;
+    }
+
+    .msg-time {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        text-align: right;
+    }
+
+    .chat-form {
+        display: flex;
+        gap: 10px;
+        padding: 14px;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-surface);
+    }
+
+    .chat-form input[type="text"] {
+        flex: 1;
+        padding: 12px 16px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: 999px;
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .chat-form input[type="text"]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .chat-send {
+        padding: 0 22px;
+        border-radius: 999px;
+    }
+
+    .chat-head-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .chat-head-user .chat-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 760px) {
+        .chat-page { grid-template-columns: 1fr; }
+        .chat-body { max-height: 46vh; }
+        .chat-dialog-list { max-height: 34vh; }
+    }
+</style>
+
+<div class="chat-page">
+    <!-- Список друзей / диалогов -->
+    <aside class="chat-side">
+        <div class="chat-side-head">
+            <span><i class="fa-solid fa-comment-dots"></i> Диалоги</span>
+            {% if chat_unread_total %}<span class="chat-unread">{{ chat_unread_total }}</span>{% endif %}
+        </div>
+
+        <div class="chat-dialog-list">
+            {% for row in chat_rows %}
+                <a href="{% url 'chat_detail' row.user.username %}"
+                   class="chat-dialog {% if partner and partner.id == row.user.id %}active{% endif %}">
+                    {% if row.user.avatar %}
+                        <img src="{{ row.user.avatar.url }}" alt="" class="chat-avatar">
+                    {% else %}
+                        <span class="chat-avatar">{{ row.user.username|slice:":1"|upper }}</span>
+                    {% endif %}
+                    <span class="chat-dialog-info">
+                        <span class="chat-dialog-name">{{ row.user.username }}</span>
+                        <span class="chat-dialog-last">
+                            {% if row.last %}
+                                {% if row.last.sender_id == user.id %}Вы: {% endif %}{{ row.last.text|truncatechars:32 }}
+                            {% else %}
+                                Нет сообщений
+                            {% endif %}
+                        </span>
+                    </span>
+                    {% if row.unread %}<span class="chat-unread">{{ row.unread }}</span>{% endif %}
+                </a>
+            {% empty %}
+                <div class="chat-empty-side">
+                    <i class="fa-solid fa-user-group"></i>
+                    Список друзей пуст. Добавьте друзей, чтобы начать переписку.
+                    <div style="margin-top: 14px;">
+                        <a href="{% url 'find_friends' %}" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-user-plus"></i> Найти друга
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <!-- Окно переписки -->
+    <section class="chat-window"
+             {% if partner and can_chat %}
+                 id="chatShell"
+                 data-send-url="{% url 'chat_send' partner.username %}"
+                 data-poll-url="{% url 'chat_poll' partner.username %}"
+                 data-last-id="{{ last_message_id|default:0 }}"
+             {% endif %}>
+        {% if partner %}
+            <div class="chat-head">
+                <span class="chat-head-user">
+                    {% if partner.avatar %}
+                        <img src="{{ partner.avatar.url }}" alt="" class="chat-avatar">
+                    {% else %}
+                        <span class="chat-avatar">{{ partner.username|slice:":1"|upper }}</span>
+                    {% endif %}
+                    <a href="{% url 'user_profile' partner.username %}" style="color: var(--text-main); text-decoration: none;">
+                        {{ partner.username }}
+                    </a>
+                </span>
+                <a href="{% url 'chat' %}" class="btn btn-ghost btn-sm" title="Все диалоги">
+                    <i class="fa-solid fa-list"></i>
+                </a>
+            </div>
+
+            {% if can_chat %}
+                <div class="chat-body" id="chatBody">
+                    {% for m in chat_messages %}
+                        <div class="msg {% if m.sender_id == user.id %}mine{% endif %}" data-mid="{{ m.id }}">
+                            {{ m.text|linebreaksbr }}
+                            <span class="msg-time">{{ m.short_time }}{% if m.sender_id == user.id and m.is_read %} · прочитано{% endif %}</span>
+                        </div>
+                    {% empty %}
+                        <div class="chat-notice">
+                            <i class="fa-regular fa-comments"></i>
+                            Напишите первое сообщение — переписка сохранится у вас обоих.
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <form class="chat-form" id="chatForm" method="post" action="{% url 'chat_send' partner.username %}">
+                    {% csrf_token %}
+                    <input type="text" id="chatInput" name="text" maxlength="2000" placeholder="Сообщение для {{ partner.username }}..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary chat-send">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            {% else %}
+                <div class="chat-notice">
+                    <i class="fa-solid fa-lock"></i>
+                    Писать сообщения можно только друзьям.
+                    <div style="margin-top: 14px;">
+                        <a href="{% url 'user_profile' partner.username %}" class="btn btn-secondary">
+                            <i class="fa-regular fa-user"></i> Открыть профиль
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="chat-notice" style="margin: auto;">
+                <i class="fa-solid fa-hand-point-up"></i>
+                Выберите друга слева, чтобы начать переписку.
+                <div style="margin-top: 14px;">
+                    <a href="{% url 'friends' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-user-group"></i> Мои друзья
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var shell = document.getElementById('chatShell');
+    if (!shell) return;
+
+    var sendUrl = shell.getAttribute('data-send-url');
+    var pollUrl = shell.getAttribute('data-poll-url');
+    var lastId = parseInt(shell.getAttribute('data-last-id'), 10) || 0;
+    var body = document.getElementById('chatBody');
+    var form = document.getElementById('chatForm');
+    var input = document.getElementById('chatInput');
+    var csrf = form ? form.querySelector('[name=csrfmiddlewaretoken]').value : '';
+
+    function atBottom() {
+        return body.scrollHeight - body.scrollTop - body.clientHeight < 120;
+    }
+
+    function scrollDown() {
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function markRead(id) {
+        var el = body.querySelector('[data-mid="' + id + '"]');
+        if (!el) return;
+        var time = el.querySelector('.msg-time');
+        if (!time || time.textContent.indexOf('прочитано') !== -1) return;
+        time.textContent += ' · прочитано';
+    }
+
+    function appendMessage(m) {
+        var wasBottom = atBottom();
+        var el = document.createElement('div');
+        el.className = 'msg' + (m.is_mine ? ' mine' : '');
+        el.setAttribute('data-mid', m.id);
+
+        var text = document.createElement('span');
+        text.textContent = m.text;
+        el.appendChild(text);
+
+        var time = document.createElement('span');
+        time.className = 'msg-time';
+        time.textContent = m.time + (m.is_read && m.is_mine ? ' · прочитано' : '');
+        el.appendChild(time);
+
+        // убираем пустое состояние
+        var notice = body.querySelector('.chat-notice');
+        if (notice) notice.remove();
+
+        body.appendChild(el);
+        if (wasBottom || m.is_mine) scrollDown();
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var text = (input.value || '').trim();
+            if (!text) return;
+
+            var fd = new FormData();
+            fd.append('text', text);
+            fd.append('csrfmiddlewaretoken', csrf);
+
+            fetch(sendUrl, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.status === 'ok' && data.message) {
+                        appendMessage(data.message);
+                        lastId = data.message.id;
+                        shell.setAttribute('data-last-id', String(lastId));
+                        input.value = '';
+                        input.focus();
+                    } else if (window.MangaSpace && MangaSpace.toast) {
+                        MangaSpace.toast(data.error || 'Не удалось отправить', 'fa-solid fa-circle-exclamation');
+                    }
+                })
+                .catch(function () {
+                    if (window.MangaSpace && MangaSpace.toast) {
+                        MangaSpace.toast('Ошибка отправки сообщения', 'fa-solid fa-circle-exclamation');
+                    }
+                });
+        });
+    }
+
+    function poll() {
+        fetch(pollUrl + '?after=' + lastId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.status !== 'ok') return;
+                if (data.messages && data.messages.length) {
+                    data.messages.forEach(function (m) {
+                        appendMessage(m);
+                        if (m.id > lastId) lastId = m.id;
+                    });
+                    shell.setAttribute('data-last-id', String(lastId));
+                }
+                if (data.read_ids) data.read_ids.forEach(markRead);
+            })
+            .catch(function () {});
+    }
+
+    setInterval(poll, 4000);
+    scrollDown();
+    if (input) input.focus();
+})();
+</script>
+{% endblock %}

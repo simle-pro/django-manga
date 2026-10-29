@@ -1,30 +1,32 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark" data-accent="orange" data-anim="on">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title.name }} — Том {{ chapter.volume }} Глава {{ chapter.number }} — MangaSpace</title>
 
-    <!-- FontAwesome & Fonts -->
+    <script src="{% static 'manga/js/prefs.js' %}"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="{% static 'manga/css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'manga/css/style.css' %}">
+
     <style>
         :root {
-            --bg-reader: #08090c;
-            --header-bg: rgba(18, 20, 29, 0.92);
-            --accent: #ff2a5f;
-            --accent-glow: rgba(255, 42, 95, 0.35);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: rgba(255, 255, 255, 0.08);
             --radius-md: 10px;
+            --header-h: 64px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
@@ -34,15 +36,21 @@
             user-select: none;
             -webkit-user-select: none;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* Шапка читалки с автоскрытием */
+        body.mode-horizontal {
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ---------- Шапка ---------- */
         .reader-header {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 64px;
+            height: var(--header-h);
             background: var(--header-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -50,27 +58,33 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 20px;
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            box-shadow: var(--shadow-md);
+            gap: 12px;
         }
 
         .reader-header.hide {
             transform: translateY(-100%);
         }
 
-        .reader-nav-left, .reader-nav-right {
+        body.mode-horizontal .reader-header.hide {
+            transform: none;
+        }
+
+        .reader-nav-left,
+        .reader-nav-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .nav-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--fill-2);
             color: var(--text-main);
             border: 1px solid var(--border-color);
             padding: 8px 14px;
@@ -79,13 +93,19 @@
             font-size: 0.88rem;
             font-weight: 600;
             transition: all 0.2s ease;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         .nav-btn:hover {
             background: var(--accent);
             border-color: var(--accent);
-            color: #fff;
+            color: var(--on-accent);
             box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .nav-btn.icon-only {
+            padding: 8px 12px;
         }
 
         .chapter-title-info {
@@ -94,6 +114,7 @@
             gap: 12px;
             font-size: 0.95rem;
             font-weight: 700;
+            min-width: 0;
         }
 
         .title-name {
@@ -107,13 +128,12 @@
         }
 
         .title-name:hover {
-            color: #fff;
+            color: var(--text-main);
         }
 
-        /* Выпадающий список глав */
         .chapter-select {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
+            background: var(--fill-2);
+            color: var(--text-main);
             border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: var(--radius-md);
@@ -123,27 +143,156 @@
             outline: none;
             cursor: pointer;
             transition: all 0.2s;
+            max-width: 200px;
         }
 
-        .chapter-select:hover, .chapter-select:focus {
+        .chapter-select:hover,
+        .chapter-select:focus {
             border-color: var(--accent);
-            background: rgba(0, 0, 0, 0.4);
+            background: var(--input-bg-focus);
         }
 
-        /* Контейнер страниц (Лента) */
+        /* ---------- Прогресс чтения ---------- */
+        .progress-track {
+            position: fixed;
+            top: var(--header-h);
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--fill-2);
+            z-index: 999;
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Когда шапка уезжает вверх — линия прогресса поднимается к краю экрана */
+        .reader-header.hide + .progress-track {
+            top: 0;
+        }
+
+        body.mode-horizontal .progress-track {
+            top: var(--header-h);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: width 0.15s linear;
+        }
+
+        /* ---------- Панель настроек ---------- */
+        .settings-panel {
+            position: fixed;
+            top: calc(var(--header-h) + 10px);
+            right: 16px;
+            width: 280px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            z-index: 1200;
+            box-shadow: var(--shadow-lg);
+            display: none;
+        }
+
+        .settings-panel.show {
+            display: block;
+        }
+
+        .settings-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .settings-title i {
+            color: var(--accent-text);
+        }
+
+        .settings-group {
+            margin-bottom: 14px;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .settings-options {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .opt-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 6px;
+            background: var(--fill-1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .opt-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent);
+        }
+
+        .opt-btn.active {
+            background: rgba(var(--accent-rgb), 0.15);
+            border-color: var(--accent);
+            color: var(--accent-text);
+        }
+
+        /* Слайдер ширины */
+        .width-slider {
+            width: 100%;
+            margin: 4px 0 10px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .settings-label span {
+            color: var(--accent-text);
+            font-weight: 800;
+        }
+
+        /* ---------- Лента (вертикальный режим) ---------- */
         .pages-container {
-            max-width: 820px;
-            margin: 74px auto 40px auto;
+            width: var(--reader-width, 100%);
+            max-width: 100vw;
+            margin: calc(var(--header-h) + 14px) auto 40px auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0;
+            transition: width 0.25s ease;
         }
 
         .page-wrapper {
             position: relative;
             width: 100%;
-            background: #0d0f14;
+            background: var(--bg-page);
         }
 
         .page-img {
@@ -152,15 +301,163 @@
             display: block;
         }
 
-        /* Блок навигации в самом низу страницы */
+        /* ---------- Улучшение качества изображений (по желанию) ---------- */
+        body.quality-boost .page-img {
+            filter: contrast(1.07) saturate(1.14) brightness(1.02);
+        }
+
+        .nav-btn.quality-active {
+            background: rgba(var(--accent-rgb), 0.18);
+            border-color: var(--accent);
+            color: var(--accent-text);
+            box-shadow: 0 0 14px var(--accent-glow);
+        }
+
+        .quality-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        /* ---------- Страницы (горизонтальный режим) ---------- */
+        body.mode-horizontal .pages-container {
+            max-width: none;
+            margin: var(--header-h) 0 0 0;
+            height: calc(100vh - var(--header-h));
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.mode-horizontal .page-wrapper {
+            display: none;
+            max-width: min(100vw, calc((100vh - var(--header-h)) * 0.72));
+            width: auto;
+            height: calc(100vh - var(--header-h));
+            background: transparent;
+        }
+
+        body.mode-horizontal .page-wrapper.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.22s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.985); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        body.mode-horizontal .page-img {
+            width: auto;
+            max-width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Клик-зоны в горизонтальном режиме */
+        .tap-zone {
+            display: none;
+            position: fixed;
+            top: var(--header-h);
+            bottom: 0;
+            width: 32%;
+            z-index: 500;
+            cursor: pointer;
+        }
+
+        body.mode-horizontal .tap-zone {
+            display: block;
+        }
+
+        .tap-zone.zone-left { left: 0; }
+        .tap-zone.zone-right { right: 0; }
+        .tap-zone.zone-center {
+            left: 32%;
+            width: 36%;
+            cursor: default;
+        }
+
+        /* Счётчик страниц */
+        .page-counter {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            z-index: 800;
+            display: none;
+            backdrop-filter: blur(8px);
+        }
+
+        body.mode-horizontal .page-counter {
+            display: block;
+        }
+
+        .page-counter span {
+            color: var(--accent-text);
+        }
+
+        /* ---------- Кнопка «Продолжить» ---------- */
+        .continue-btn {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: var(--on-accent);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            z-index: 900;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .continue-btn:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 12px 30px var(--accent-glow);
+        }
+
+        .continue-btn.show {
+            display: inline-flex;
+        }
+
+        /* Не перекрывать счётчик страниц */
+        body.mode-horizontal .continue-btn {
+            bottom: 64px;
+        }
+
+        /* ---------- Нижняя навигация ---------- */
         .reader-bottom-nav {
-            max-width: 820px;
+            width: var(--reader-width, 100%);
+            max-width: 100vw;
             margin: 40px auto 80px auto;
             padding: 30px 20px;
-            background: rgba(18, 20, 29, 0.6);
+            background: var(--fill-1);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             text-align: center;
+            box-sizing: border-box;
+        }
+
+        body.mode-horizontal .reader-bottom-nav {
+            display: none;
         }
 
         .bottom-nav-title {
@@ -184,19 +481,20 @@
 
         .no-pages {
             text-align: center;
-            padding: 100px 20px;
+            padding: 120px 20px;
             color: var(--text-muted);
         }
 
         .no-pages i {
             font-size: 4rem;
-            color: var(--accent);
+            color: var(--accent-text);
             margin-bottom: 20px;
         }
 
+        /* ---------- Мобильные ---------- */
         @media (max-width: 768px) {
             .reader-header {
-                padding: 0 12px;
+                padding: 0 10px;
             }
 
             .title-name {
@@ -207,15 +505,35 @@
                 display: none;
             }
 
-            .pages-container {
-                margin-top: 64px;
+            .chapter-select {
+                max-width: 140px;
+                font-size: 0.8rem;
+                padding: 7px 8px;
+            }
+
+            .settings-panel {
+                right: 8px;
+                left: 8px;
+                width: auto;
+            }
+
+            .tap-zone {
+                width: 30%;
+            }
+
+            .tap-zone.zone-center {
+                left: 30%;
+                width: 40%;
             }
         }
     </style>
 </head>
-<body>
+<body class="mode-vertical"
+      data-slug="{{ title.slug }}"
+      data-volume="{{ chapter.volume }}"
+      data-number="{{ chapter.number }}">
 
-<!-- Шапка читалки -->
+<!-- Шапка -->
 <header class="reader-header" id="readerHeader">
     <div class="reader-nav-left">
         <a href="{% url 'title_detail' title.slug %}" class="nav-btn" title="К тайтлу">
@@ -227,8 +545,8 @@
     <div class="chapter-title-info">
         <a href="{% url 'title_detail' title.slug %}" class="title-name">{{ title.name }}</a>
         <span style="color: var(--border-color);">|</span>
-        
-        <select class="chapter-select" onchange="location = this.value;">
+
+        <select class="chapter-select" id="chapterSelect" onchange="location = this.value;">
             {% for ch in title.chapters.all %}
                 <option value="{% url 'reader' title.slug ch.volume ch.number %}" {% if ch.id == chapter.id %}selected{% endif %}>
                     Том {{ ch.volume }} Глава {{ ch.number }}
@@ -238,6 +556,12 @@
     </div>
 
     <div class="reader-nav-right">
+        <button class="nav-btn icon-only" id="qualityBtn" title="Улучшить качество изображений" onclick="toggleQuality(event)">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </button>
+        <button class="nav-btn icon-only" id="settingsBtn" title="Настройки чтения" onclick="toggleSettings(event)">
+            <i class="fa-solid fa-gear"></i>
+        </button>
         <a id="previousChapter" href="#" class="nav-btn" title="Предыдущая глава" hidden>
             <i class="fa-solid fa-chevron-left"></i>
             <span class="nav-text">Пред.</span>
@@ -249,11 +573,91 @@
     </div>
 </header>
 
-<!-- Контейнер со страницами -->
-<main class="pages-container">
+<!-- Прогресс чтения -->
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- Панель настроек чтения -->
+<div class="settings-panel" id="settingsPanel">
+    <div class="settings-title"><i class="fa-solid fa-sliders"></i> Настройки чтения</div>
+
+    <div class="settings-group">
+        <div class="settings-label">Режим</div>
+        <div class="settings-options">
+            <button type="button" class="opt-btn" data-setting="mode" data-value="vertical" onclick="setReaderSetting('mode', 'vertical')">
+                <i class="fa-solid fa-arrows-vertical"></i> Лента
+            </button>
+            <button type="button" class="opt-btn" data-setting="mode" data-value="horizontal" onclick="setReaderSetting('mode', 'horizontal')">
+                <i class="fa-solid fa-book-open"></i> Страницы
+            </button>
+        </div>
+    </div>
+
+    <div class="settings-group" id="widthGroup">
+        <div class="settings-label">Ширина страниц: <span id="widthValueLabel">100%</span></div>
+        <input type="range" class="width-slider" id="widthSlider"
+               min="40" max="100" step="1" value="100"
+               aria-label="Ширина страниц в процентах от экрана">
+        <div class="settings-options">
+            <button type="button" class="opt-btn" data-setting="width" data-value="60" onclick="setReaderSetting('width', 60)">60%</button>
+            <button type="button" class="opt-btn" data-setting="width" data-value="80" onclick="setReaderSetting('width', 80)">80%</button>
+            <button type="button" class="opt-btn" data-setting="width" data-value="100" onclick="setReaderSetting('width', 100)">По экрану</button>
+        </div>
+    </div>
+
+    <div class="settings-group" id="dirGroup">
+        <div class="settings-label">Направление</div>
+        <div class="settings-options">
+            <button type="button" class="opt-btn" data-setting="dir" data-value="rtl" onclick="setReaderSetting('dir', 'rtl')">
+                Справа налево
+            </button>
+            <button type="button" class="opt-btn" data-setting="dir" data-value="ltr" onclick="setReaderSetting('dir', 'ltr')">
+                Слева направо
+            </button>
+        </div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-label">Качество изображений</div>
+        <div class="settings-options">
+            <button type="button" class="opt-btn" data-setting="quality" data-value="normal" onclick="setReaderSetting('quality', 'normal')">
+                Обычное
+            </button>
+            <button type="button" class="opt-btn" data-setting="quality" data-value="enhanced" onclick="setReaderSetting('quality', 'enhanced')">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Чётче
+            </button>
+            <button type="button" class="opt-btn" data-setting="quality" data-value="lite" onclick="setReaderSetting('quality', 'lite')">
+                <i class="fa-solid fa-feather"></i> Лёгкое
+            </button>
+        </div>
+        <div class="quality-hint">«Чётче» — контраст и яркость. «Лёгкое» — уменьшенные файлы, быстрая загрузка.</div>
+    </div>
+
+    <div class="settings-group">
+        <div class="settings-label">Тема интерфейса</div>
+        <div class="settings-options">
+            <button type="button" class="opt-btn" data-set-theme="dark">
+                <i class="fa-solid fa-moon"></i> Тёмная
+            </button>
+            <button type="button" class="opt-btn" data-set-theme="light">
+                <i class="fa-solid fa-sun"></i> Светлая
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Клик-зоны (только горизонтальный режим): левая треть / правая треть -->
+<div class="tap-zone zone-left" onclick="flipPage('left')"></div>
+<div class="tap-zone zone-center"></div>
+<div class="tap-zone zone-right" onclick="flipPage('right')"></div>
+
+<!-- Страницы -->
+<main class="pages-container" id="pagesContainer">
     {% for page in pages %}
-        <div class="page-wrapper" id="page-{{ page.page_number }}">
-            <img src="{{ page.image.url }}" alt="Страница {{ page.page_number }}" class="page-img" loading="lazy">
+        <div class="page-wrapper{% if forloop.first %} active{% endif %}" id="page-{{ page.page_number }}" data-index="{{ forloop.counter0 }}">
+            <img src="{{ page.image.url }}"
+                 data-orig="{{ page.image.url }}"
+                 data-lite="{% url 'page_lite' page.id %}"
+                 alt="Страница {{ page.page_number }}" class="page-img" loading="lazy">
         </div>
     {% empty %}
         <div class="no-pages">
@@ -264,8 +668,16 @@
     {% endfor %}
 </main>
 
-<!-- Нижняя навигация после окончания чтения -->
+<!-- Счётчик страниц -->
+<div class="page-counter" id="pageCounter"><span id="pageCurrent">1</span> / <span id="pageTotal">{{ pages|length }}</span></div>
+
+<!-- Кнопка продолжения -->
+<button type="button" class="continue-btn" id="continueBtn" onclick="continueReading()">
+    <i class="fa-solid fa-forward-step"></i> <span id="continueText">Продолжить</span>
+</button>
+
 {% if pages %}
+<!-- Нижняя навигация -->
 <section class="reader-bottom-nav">
     <div class="bottom-nav-title">Вы прочитали: Том {{ chapter.volume }} Глава {{ chapter.number }}</div>
     <div class="bottom-nav-buttons">
@@ -277,7 +689,7 @@
             <i class="fa-solid fa-list"></i> К списку глав
         </a>
 
-        <a id="nextChapterBottom" href="#" class="nav-btn btn-large" style="background: var(--accent); border-color: var(--accent);" hidden>
+        <a id="nextChapterBottom" href="#" class="nav-btn btn-large" style="background: var(--accent); border-color: var(--accent); color: var(--on-accent);" hidden>
             Следующая глава <i class="fa-solid fa-arrow-right"></i>
         </a>
     </div>
@@ -285,53 +697,362 @@
 {% endif %}
 
 <script>
-    let lastScrollTop = 0;
-    const header = document.getElementById('readerHeader');
-    const chapterSelect = document.querySelector('.chapter-select');
+(function () {
+    'use strict';
 
+    const body = document.body;
+    const pagesContainer = document.getElementById('pagesContainer');
+    const pageWrappers = Array.from(document.querySelectorAll('.page-wrapper'));
+    const totalPages = pageWrappers.length;
+    const progressFill = document.getElementById('progressFill');
+    const pageCounter = document.getElementById('pageCounter');
+    const pageCurrentEl = document.getElementById('pageCurrent');
+    const continueBtn = document.getElementById('continueBtn');
+    const continueText = document.getElementById('continueText');
+    const header = document.getElementById('readerHeader');
+    const settingsPanel = document.getElementById('settingsPanel');
+
+    const slug = body.dataset.slug;
+    const volume = body.dataset.volume;
+    const number = body.dataset.number;
+    const POS_KEY = 'manga-reader-pos-' + slug + '-' + volume + '-' + number;
+    const SETTINGS_KEY = 'manga-reader-settings';
+
+    let settings = { mode: 'vertical', width: 100, dir: 'rtl', quality: 'normal' };
+    try {
+        Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+    } catch (e) { /* повреждённые данные — используем defaults */ }
+
+    // Ширина — число в процентах от экрана
+    settings.width = Math.min(100, Math.max(40, parseInt(settings.width, 10) || 100));
+    // Качество: 'normal' | 'enhanced' | 'lite' (старые булевы значения тоже понимаем)
+    if (settings.quality === true || settings.quality === 'true') settings.quality = 'enhanced';
+    if (settings.quality === false || settings.quality === 'false' || !settings.quality) settings.quality = 'normal';
+    if (['normal', 'enhanced', 'lite'].indexOf(settings.quality) === -1) settings.quality = 'normal';
+
+    let currentPage = 0;
+    let lastScrollTop = 0;
+    let saveTimer = null;
+
+    const widthSlider = document.getElementById('widthSlider');
+    const widthValueLabel = document.getElementById('widthValueLabel');
+
+    /* ---------- Настройки ---------- */
+    function saveSettings() {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    window.setReaderSetting = function (key, value) {
+        if (key === 'width') {
+            value = Math.min(100, Math.max(40, parseInt(value, 10) || 100));
+        }
+        settings[key] = value;
+        saveSettings();
+        applySettings();
+    };
+
+    // Слайдер ширины
+    if (widthSlider) {
+        widthSlider.addEventListener('input', function () {
+            settings.width = parseInt(widthSlider.value, 10);
+            if (widthValueLabel) widthValueLabel.textContent = settings.width + '%';
+            applyWidth();
+            // Подсветка пресета
+            document.querySelectorAll('.opt-btn[data-setting="width"]').forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.value === String(settings.width));
+            });
+        });
+        widthSlider.addEventListener('change', saveSettings);
+    }
+
+    function applyWidth() {
+        if (widthSlider) widthSlider.value = settings.width;
+        if (widthValueLabel) widthValueLabel.textContent = settings.width + '%';
+
+        if (settings.mode === 'vertical') {
+            document.documentElement.style.setProperty('--reader-width', settings.width + '%');
+        } else {
+            document.documentElement.style.removeProperty('--reader-width');
+        }
+    }
+
+    function applyQuality() {
+        var mode = settings.quality;
+        body.classList.toggle('quality-boost', mode === 'enhanced');
+
+        // Подмена источников: «лёгкое» — сжатые копии, иначе оригиналы
+        pageWrappers.forEach(function (w) {
+            var img = w.querySelector('img');
+            if (!img || !img.dataset.lite) return;
+            if (mode === 'lite') {
+                if (img.getAttribute('src') !== img.dataset.lite) img.src = img.dataset.lite;
+            } else {
+                if (img.getAttribute('src') !== img.dataset.orig) img.src = img.dataset.orig;
+            }
+        });
+
+        // Кнопка в шапке: подсветка + смена подсказки
+        var qualityBtn = document.getElementById('qualityBtn');
+        if (qualityBtn) {
+            qualityBtn.classList.toggle('quality-active', mode !== 'normal');
+            var icon = qualityBtn.querySelector('i');
+            if (icon) {
+                icon.className = (mode === 'lite')
+                    ? 'fa-solid fa-feather'
+                    : (mode === 'enhanced' ? 'fa-solid fa-wand-magic-sparkles' : 'fa-solid fa-image');
+            }
+            qualityBtn.title = (mode === 'lite')
+                ? 'Лёгкое качество (нажать: обычное)'
+                : (mode === 'enhanced' ? 'Чёткое качество (нажать: лёгкое)' : 'Обычное качество (нажать: чётче)');
+        }
+    }
+
+    // Быстрая смена режима кнопкой в шапке: обычное -> чётче -> лёгкое -> обычное
+    window.toggleQuality = function (event) {
+        if (event) event.stopPropagation();
+        var order = ['normal', 'enhanced', 'lite'];
+        var idx = order.indexOf(settings.quality);
+        settings.quality = order[(idx + 1) % order.length];
+        saveSettings();
+        applyQuality();
+    };
+
+    function applySettings() {
+        body.classList.toggle('mode-vertical', settings.mode === 'vertical');
+        body.classList.toggle('mode-horizontal', settings.mode === 'horizontal');
+
+        applyWidth();
+        applyQuality();
+
+        // Активные кнопки в панели (только у настроек с data-setting, не у темы)
+        document.querySelectorAll('.opt-btn[data-setting]').forEach(function (btn) {
+            const key = btn.dataset.setting;
+            const val = btn.dataset.value;
+            const current = String(settings[key]);
+            btn.classList.toggle('active', current === val);
+        });
+
+        // Группы настроек: ширина — только для ленты, направление — только для страниц
+        document.getElementById('widthGroup').style.display = settings.mode === 'vertical' ? '' : 'none';
+        document.getElementById('dirGroup').style.display = settings.mode === 'horizontal' ? '' : 'none';
+
+        if (settings.mode === 'horizontal') {
+            showPage(currentPage, false);
+        } else {
+            pageWrappers.forEach(function (p) { p.classList.remove('active'); });
+            updateVerticalProgress();
+        }
+        updatePageCounter();
+    }
+
+    window.toggleSettings = function (event) {
+        event.stopPropagation();
+        settingsPanel.classList.toggle('show');
+    };
+
+    document.addEventListener('click', function (e) {
+        if (!settingsPanel.contains(e.target) && !document.getElementById('settingsBtn').contains(e.target)) {
+            settingsPanel.classList.remove('show');
+        }
+    });
+
+    /* ---------- Тема внутри читалки ---------- */
+    const themeButtons = document.querySelectorAll('[data-set-theme]');
+
+    function applyReaderTheme(theme) {
+        theme = theme === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('ms-theme', theme); } catch (e) { /* приватный режим */ }
+        themeButtons.forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-set-theme') === theme);
+        });
+    }
+
+    themeButtons.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            applyReaderTheme(btn.getAttribute('data-set-theme'));
+        });
+    });
+
+    applyReaderTheme(document.documentElement.getAttribute('data-theme'));
+
+    /* ---------- Горизонтальный режим ---------- */
+    function showPage(index, savePosition) {
+        if (totalPages === 0) return;
+        currentPage = Math.max(0, Math.min(index, totalPages - 1));
+
+        pageWrappers.forEach(function (p, i) {
+            p.classList.toggle('active', i === currentPage);
+        });
+
+        // Прелоад следующей страницы
+        const nextImg = pageWrappers[currentPage + 1] && pageWrappers[currentPage + 1].querySelector('img');
+        if (nextImg) {
+            const pre = new Image();
+            pre.src = nextImg.src;
+        }
+
+        updatePageCounter();
+        if (savePosition !== false) {
+            savePos({ page: currentPage });
+        }
+    }
+
+    function updatePageCounter() {
+        if (pageCurrentEl) pageCurrentEl.textContent = totalPages ? currentPage + 1 : 0;
+        if (settings.mode === 'horizontal' && totalPages) {
+            progressFill.style.width = ((currentPage + 1) / totalPages * 100) + '%';
+        }
+    }
+
+    // Клик/клавиша по позиции: в RTL «вперёд» — влево, в LTR — вправо
+    window.flipPage = function (side) {
+        if (settings.mode !== 'horizontal' || totalPages === 0) return;
+        const delta = (side === 'left')
+            ? (settings.dir === 'rtl' ? 1 : -1)
+            : (settings.dir === 'rtl' ? -1 : 1);
+        showPage(currentPage + delta);
+    };
+
+    /* ---------- Вертикальный режим ---------- */
+    function updateVerticalProgress() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        progressFill.style.width = Math.min(100, percent) + '%';
+    }
+
+    /* ---------- Позиция чтения ---------- */
+    function savePos(pos) {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+            localStorage.setItem(POS_KEY, JSON.stringify(pos));
+        }, 300);
+    }
+
+    function readPos() {
+        try {
+            return JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function showContinue() {
+        const pos = readPos();
+        if (!pos) return;
+
+        if (settings.mode === 'vertical' && pos.scroll > 400) {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const percent = docHeight > 0 ? Math.round(pos.scroll / docHeight * 100) : 0;
+            if (percent > 3 && percent < 97) {
+                continueText.textContent = 'Продолжить с ' + percent + '%';
+                continueBtn.dataset.mode = 'vertical';
+                continueBtn.dataset.value = pos.scroll;
+                continueBtn.classList.add('show');
+            }
+        } else if (settings.mode === 'horizontal' && totalPages > 1
+                   && pos.page > 0 && pos.page < totalPages - 1) {
+            continueText.textContent = 'Продолжить со стр. ' + (pos.page + 1);
+            continueBtn.dataset.mode = 'horizontal';
+            continueBtn.dataset.value = pos.page;
+            continueBtn.classList.add('show');
+        }
+    }
+
+    window.continueReading = function () {
+        continueBtn.classList.remove('show');
+        const mode = continueBtn.dataset.mode;
+        const value = parseInt(continueBtn.dataset.value, 10);
+        if (mode === 'vertical') {
+            window.scrollTo({ top: value, behavior: 'smooth' });
+        } else {
+            showPage(value);
+        }
+    };
+
+    /* ---------- Навигация между главами ---------- */
+    const chapterSelect = document.getElementById('chapterSelect');
     if (chapterSelect) {
         const chapterIndex = chapterSelect.selectedIndex;
-        const previousUrl = chapterSelect.options[chapterIndex - 1]?.value;
-        const nextUrl = chapterSelect.options[chapterIndex + 1]?.value;
+        const previousUrl = chapterSelect.options[chapterIndex - 1] && chapterSelect.options[chapterIndex - 1].value;
+        const nextUrl = chapterSelect.options[chapterIndex + 1] && chapterSelect.options[chapterIndex + 1].value;
 
         if (previousUrl) {
-            ['previousChapter', 'previousChapterBottom'].forEach(function(id) {
+            ['previousChapter', 'previousChapterBottom'].forEach(function (id) {
                 const link = document.getElementById(id);
-                link.href = previousUrl;
-                link.hidden = false;
+                if (link) {
+                    link.href = previousUrl;
+                    link.hidden = false;
+                }
             });
         }
 
         if (nextUrl) {
-            ['nextChapter', 'nextChapterBottom'].forEach(function(id) {
+            ['nextChapter', 'nextChapterBottom'].forEach(function (id) {
                 const link = document.getElementById(id);
-                link.href = nextUrl;
-                link.hidden = false;
+                if (link) {
+                    link.href = nextUrl;
+                    link.hidden = false;
+                }
             });
         }
     }
 
-    window.addEventListener('scroll', function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
+    /* ---------- Скролл: прогресс, автоскрытие шапки, сохранение позиции ---------- */
+    window.addEventListener('scroll', function () {
+        if (settings.mode !== 'vertical') return;
+
+        updateVerticalProgress();
+
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > 120) {
             header.classList.add('hide');
         } else {
             header.classList.remove('hide');
         }
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    }, false);
 
-    document.addEventListener('keydown', function(e) {
+        savePos({ scroll: scrollTop });
+
+        // Скрыть кнопку «Продолжить», если пользователь сам долистал
+        if (continueBtn.classList.contains('show') && scrollTop > 400) {
+            continueBtn.classList.remove('show');
+        }
+    }, { passive: true });
+
+    /* ---------- Клавиатура ---------- */
+    document.addEventListener('keydown', function (e) {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
         const previousLink = document.getElementById('previousChapter');
         const nextLink = document.getElementById('nextChapter');
 
-        if (e.key === 'ArrowLeft' && previousLink && !previousLink.hidden) {
-            window.location.href = previousLink.href;
-        }
-        if (e.key === 'ArrowRight' && nextLink && !nextLink.hidden) {
-            window.location.href = nextLink.href;
+        if (settings.mode === 'horizontal') {
+            // Как клик-зоны: стрелка в ту же сторону, что и нажатая зона
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                flipPage('left');
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                flipPage('right');
+            }
+        } else {
+            if (e.key === 'ArrowLeft' && previousLink && !previousLink.hidden) {
+                window.location.href = previousLink.href;
+            }
+            if (e.key === 'ArrowRight' && nextLink && !nextLink.hidden) {
+                window.location.href = nextLink.href;
+            }
         }
     });
+
+    /* ---------- Инициализация ---------- */
+    applySettings();
+    showContinue();
+    updateVerticalProgress();
+})();
 </script>
 
 </body>

@@ -1,0 +1,525 @@
+{% extends 'manga/base.html' %}
+
+{% block title %}{{ user_profile.username }} — Профиль — MangaSpace{% endblock %}
+
+{% block content %}
+<style>
+    .profile-wrapper {
+        max-width: 920px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        display: flex;
+        gap: 28px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        align-items: center;
+    }
+
+    .avatar-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--accent);
+        box-shadow: 0 0 20px var(--accent-glow);
+        flex-shrink: 0;
+    }
+
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--text-main);
+        box-shadow: 0 0 20px var(--accent-glow);
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .user-username {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .user-role-tag {
+        padding: 4px 12px;
+        background: var(--fill-2);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .user-role-tag.is-author {
+        background: rgba(var(--accent-rgb), 0.15);
+        border-color: rgba(var(--accent-rgb), 0.4);
+        color: var(--accent-text);
+        font-weight: 700;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .stat-item {
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .stat-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-top: 2px;
+    }
+
+    .friend-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .closed-notice {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(245, 158, 11, 0.10);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+        padding: 14px 18px;
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 16px;
+    }
+
+    .hidden-profile-card {
+        max-width: 560px;
+        margin: 60px auto;
+        text-align: center;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        padding: 48px 32px;
+    }
+
+    .hidden-profile-card i.icon {
+        font-size: 3rem;
+        color: var(--accent-text);
+        margin-bottom: 16px;
+    }
+
+    .hidden-profile-card h2 {
+        color: var(--text-main);
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .hidden-profile-card p {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .profile-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .profile-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        transition: var(--transition);
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .profile-list-item:hover {
+        background: rgba(var(--accent-rgb), 0.05);
+        border-color: var(--accent);
+    }
+
+    .item-link {
+        color: var(--text-main);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .item-link:hover {
+        color: var(--accent-text);
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        background: rgba(var(--accent-rgb), 0.15);
+        color: var(--accent-text);
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .friend-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        color: #6ee7b7;
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    .pending-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-size: 0.88rem;
+    }
+
+    .profile-section {
+        margin-top: 32px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+    }
+
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-header i {
+        color: var(--accent-text);
+    }
+
+    .empty-list-text {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        text-align: center;
+        padding: 20px 0;
+        margin: 0;
+    }
+
+    .profile-alert {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        border: 1px solid;
+    }
+
+    .profile-alert.success {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+    }
+
+    .profile-alert.error {
+        background: rgba(var(--accent-rgb), 0.12);
+        border-color: rgba(var(--accent-rgb), 0.4);
+        color: #ff8fa8;
+    }
+
+    @media (max-width: 650px) {
+        .profile-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .user-header {
+            justify-content: center;
+        }
+
+        .friend-actions {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="profile-wrapper">
+    <!-- Чёрный список: скрытый профиль -->
+    {% if is_hidden %}
+        <div class="hidden-profile-card">
+            <i class="fa-solid fa-user-secret icon"></i>
+            <h2>Профиль недоступен</h2>
+            {% if viewer_blocked_profile %}
+                <p>Вы заблокировали этого пользователя. Разблокируйте его в настройках, чтобы снова открыть профиль.</p>
+                <form method="post" action="{% url 'unblock_user' my_block_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-lock-open"></i> Разблокировать
+                    </button>
+                </form>
+            {% else %}
+                <p>Пользователь ограничил доступ к своему профилю.</p>
+            {% endif %}
+        </div>
+    {% else %}
+    <!-- Карточка профиля -->
+    <div class="profile-card">
+        {% if user_profile.avatar %}
+            <img src="{{ user_profile.avatar.url }}" alt="Avatar" class="avatar-img">
+        {% else %}
+            <div class="avatar-placeholder">
+                {{ user_profile.username|slice:":1"|upper }}
+            </div>
+        {% endif %}
+
+        <div class="user-info">
+            <div class="user-header">
+                <h2 class="user-username">{{ user_profile.username }}</h2>
+                <span class="user-role-tag {% if is_author %}is-author{% endif %}">
+                    {% if is_author %}
+                        <i class="fa-solid fa-pen-nib"></i> Автор / Переводчик
+                    {% else %}
+                        <i class="fa-solid fa-book-open"></i> {{ user_profile.get_role_display|default:"Читатель" }}
+                    {% endif %}
+                </span>
+                {% if user_profile.is_closed %}
+                    <span class="user-role-tag" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24;">
+                        <i class="fa-solid fa-lock"></i> Закрытый
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label"><i class="fa-solid fa-trophy"></i> Ранг</div>
+                    <div class="stat-value">{{ user_profile.rank_name|default:"Новичок" }} <span style="font-size: 0.85rem; color: var(--text-muted);">(Ув. {{ user_profile.level|default:1 }})</span></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label"><i class="fa-solid fa-bolt"></i> Очки опыта</div>
+                    <div class="stat-value" style="color: var(--accent-text);">{{ user_profile.xp|default:0 }} XP</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label"><i class="fa-solid fa-user-group"></i> Друзья</div>
+                    <div class="stat-value">{{ friends_count }}</div>
+                </div>
+                {% if is_self or user.is_staff or user.is_superuser or user.role == 'admin' %}
+                    <div class="stat-item">
+                        <div class="stat-label"><i class="fa-solid fa-id-badge"></i> ID</div>
+                        <div class="stat-value">{{ user_profile.public_id|default:"—" }}</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if not can_view_full and user_profile.is_closed %}
+                <div class="closed-notice">
+                    <i class="fa-solid fa-lock"></i>
+                    Закрытый аккаунт — профиль, тайтлы и закладки видят только друзья.
+                </div>
+            {% endif %}
+
+            <!-- Действия с дружбой -->
+            {% if user.is_authenticated and not is_self %}
+                <div class="friend-actions">
+                    {% if friendship %}
+                        <span class="friend-badge"><i class="fa-solid fa-user-check"></i> У вас в друзьях</span>
+                        <a href="{% url 'chat_detail' user_profile.username %}" class="btn btn-primary" style="margin: 0;">
+                            <i class="fa-solid fa-comment-dots"></i> Написать
+                        </a>
+                        <form method="post" action="{% url 'remove_friend' friendship.id %}" style="margin: 0;" onsubmit="return confirm('Удалить из друзей?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-ghost">
+                                <i class="fa-solid fa-user-minus"></i> Удалить из друзей
+                            </button>
+                        </form>
+                    {% elif incoming_request %}
+                        <form method="post" action="{% url 'respond_friend_request' incoming_request.id %}" style="margin: 0; display: flex; gap: 10px; flex-wrap: wrap;">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="accept" class="btn btn-primary">
+                                <i class="fa-solid fa-check"></i> Принять заявку
+                            </button>
+                            <button type="submit" name="action" value="decline" class="btn btn-ghost">
+                                <i class="fa-solid fa-xmark"></i> Отклонить
+                            </button>
+                        </form>
+                    {% elif outgoing_request %}
+                        <span class="pending-badge"><i class="fa-solid fa-hourglass-half"></i> Заявка отправлена</span>
+                        <form method="post" action="{% url 'cancel_friend_request' outgoing_request.id %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-ghost">
+                                <i class="fa-solid fa-rotate-left"></i> Отозвать
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'send_friend_request' user_profile.username %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-user-plus"></i> Добавить в друзья
+                            </button>
+                        </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'block_user' user_profile.username %}" style="margin: 0;" onsubmit="return confirm('Заблокировать пользователя? Дружба и заявки будут удалены.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost" style="color: #ff8fa8;" title="Заблокировать">
+                            <i class="fa-solid fa-ban"></i> Заблокировать
+                        </button>
+                    </form>
+                </div>
+            {% elif is_self %}
+                <div class="friend-actions">
+                    <a href="{% url 'profile' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-user-pen"></i> Редактировать профиль
+                    </a>
+                    <a href="{% url 'friends' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-user-group"></i> Мои друзья
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Сообщения -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="profile-alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Тайтлы автора / переводчика -->
+    {% if is_author and can_view_full %}
+        <div class="profile-section">
+            <h3 class="section-header">
+                <i class="fa-solid fa-pen-nib"></i> Тайтлы автора / переводчика
+            </h3>
+            {% if profile_titles %}
+                <div class="manga-grid">
+                    {% for t in profile_titles %}
+                        <a href="{% url 'title_detail' t.slug %}" class="manga-card">
+                            <div class="manga-poster">
+                                {% if t.is_nsfw %}<span class="nsfw-badge">NSFW</span>{% endif %}
+                                {% if t.cover %}
+                                    <img src="{{ t.cover.url }}" alt="{{ t.name }}">
+                                {% endif %}
+                                <div class="manga-overlay">
+                                    <div class="manga-badge">
+                                        <i class="fa-solid fa-star"></i> {{ t.average_rating|default:"0.0" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="manga-info">
+                                <div class="manga-title">{{ t.name }}</div>
+                                <div class="manga-meta">
+                                    <span><i class="fa-solid fa-book-open"></i> {{ t.get_type_display|default:"Манга" }}</span>
+                                    <span><i class="fa-solid fa-list"></i> {{ t.chapters.count }} гл.</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-list-text"><i class="fa-solid fa-folder-open"></i> Тайтлов пока нет</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Закладки -->
+    {% if can_view_bookmarks %}
+        <div class="profile-section">
+            <h3 class="section-header">
+                <i class="fa-solid fa-bookmark"></i> Закладки
+            </h3>
+            {% if profile_bookmarks %}
+                <ul class="profile-list">
+                    {% for b in profile_bookmarks %}
+                        {% if b.title.slug %}
+                            <li class="profile-list-item">
+                                <a href="{% url 'title_detail' b.title.slug %}" class="item-link">
+                                    <i class="fa-solid fa-book"></i> {{ b.title.name }}
+                                </a>
+                                <span class="status-badge">{{ b.get_status_display }}</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-list-text"><i class="fa-solid fa-folder-open"></i> Закладок пока нет</p>
+            {% endif %}
+        </div>
+    {% elif can_view_full %}
+        <div class="profile-section">
+            <h3 class="section-header">
+                <i class="fa-solid fa-bookmark"></i> Закладки
+            </h3>
+            <p class="empty-list-text"><i class="fa-solid fa-lock"></i> Пользователь скрыл свои закладки</p>
+        </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+/* ============================================================
+   MangaSpace — темы (тёмная/светлая), акценты и базовые токены
+   ============================================================ */
+
+:root {
+    /* Нативные контролы (select, input, scrollbar) в тёмном стиле */
+    color-scheme: dark;
+
+    /* --- Акцент по умолчанию: оранжевый --- */
+    --accent: #ff7a1a;
+    --accent-rgb: 255, 122, 26;
+    --accent-hover: #e86100;
+    --accent-strong: #d95f00;
+    --accent-2: #ffb02e;
+    --accent-glow: rgba(var(--accent-rgb), 0.42);
+
+    /* --- Тёмная тема (по умолчанию) --- */
+    --bg-body: #0a0b10;
+    --bg-surface: #12141d;
+    --bg-card: #181b26;
+    --bg-card-hover: #212534;
+    --bg-inset: #10121a;
+    --bg-reader: #08090c;
+    --bg-page: #0d0f14;
+    --header-bg: rgba(18, 20, 29, 0.82);
+    --panel-bg: rgba(18, 20, 29, 0.97);
+
+    --text-main: #f1f3f9;
+    --text-muted: #8c92a4;
+    --text-faint: rgba(241, 243, 249, 0.35);
+    --on-accent: #ffffff;
+
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-highlight: rgba(255, 255, 255, 0.14);
+
+    --fill-1: rgba(255, 255, 255, 0.03);
+    --fill-2: rgba(255, 255, 255, 0.06);
+    --fill-3: rgba(255, 255, 255, 0.12);
+
+    --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.62);
+
+    --accent-text: var(--accent);
+    --aurora-opacity: 0.5;
+    --input-bg: rgba(255, 255, 255, 0.04);
+    --input-bg-focus: rgba(0, 0, 0, 0.35);
+
+    /* --- Общие размеры --- */
+    --header-height: 72px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --speed: 1;
+}
+
+/* ============================================================
+   Светлая тема
+   ============================================================ */
+[data-theme="light"] {
+    color-scheme: light;
+
+    --bg-body: #f4f6fb;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f2f4f9;
+    --bg-inset: #eceff5;
+    --bg-reader: #eef0f6;
+    --bg-page: #ffffff;
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --panel-bg: rgba(255, 255, 255, 0.97);
+
+    --text-main: #151823;
+    --text-muted: #5f6678;
+    --text-faint: #9aa1b3;
+
+    --border-color: rgba(20, 25, 40, 0.1);
+    --border-highlight: rgba(20, 25, 40, 0.18);
+
+    --fill-1: rgba(20, 25, 40, 0.035);
+    --fill-2: rgba(20, 25, 40, 0.06);
+    --fill-3: rgba(20, 25, 40, 0.1);
+
+    --shadow-sm: 0 4px 12px rgba(30, 40, 70, 0.08);
+    --shadow-md: 0 12px 30px rgba(30, 40, 70, 0.12);
+    --shadow-lg: 0 20px 45px rgba(30, 40, 70, 0.16);
+
+    --accent-text: var(--accent-strong);
+    --aurora-opacity: 0.35;
+    --input-bg: rgba(20, 25, 40, 0.04);
+    --input-bg-focus: #ffffff;
+}
+
+/* ============================================================
+   Выбор акцентного цвета (в настройках)
+   ============================================================ */
+[data-accent="orange"] {
+    --accent: #ff7a1a;
+    --accent-rgb: 255, 122, 26;
+    --accent-hover: #e86100;
+    --accent-strong: #d95f00;
+    --accent-2: #ffb02e;
+}
+
+[data-accent="pink"] {
+    --accent: #ff2a5f;
+    --accent-rgb: 255, 42, 95;
+    --accent-hover: #e01f4f;
+    --accent-strong: #d81b4c;
+    --accent-2: #ff758c;
+}
+
+[data-accent="violet"] {
+    --accent: #8a5cf6;
+    --accent-rgb: 138, 92, 246;
+    --accent-hover: #7246e0;
+    --accent-strong: #6b3fd6;
+    --accent-2: #b39aff;
+}
+
+[data-accent="blue"] {
+    --accent: #2f80ed;
+    --accent-rgb: 47, 128, 237;
+    --accent-hover: #1f6ad1;
+    --accent-strong: #1b5fbe;
+    --accent-2: #58a6ff;
+}
+
+[data-accent="emerald"] {
+    --accent: #10b981;
+    --accent-rgb: 16, 185, 129;
+    --accent-hover: #0d9d6e;
+    --accent-strong: #0b8a61;
+    --accent-2: #4ade80;
+}
+
+[data-accent="gold"] {
+    --accent: #f5a524;
+    --accent-rgb: 245, 165, 36;
+    --accent-hover: #e08f0d;
+    --accent-strong: #c97f06;
+    --accent-2: #ffd166;
+}

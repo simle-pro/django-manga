@@ -1,0 +1,595 @@
+{% extends 'manga/base.html' %}
+
+{% block title %}Настройки — MangaSpace{% endblock %}
+
+{% block content %}
+<style>
+    .swatch-names .name {
+        width: 54px;
+        text-align: center;
+    }
+
+    .role-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        flex-wrap: wrap;
+    }
+
+    .role-status .role-info strong {
+        display: block;
+        font-size: 0.98rem;
+        color: var(--text-main);
+    }
+
+    .role-status .role-info span {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: rgba(var(--accent-rgb), 0.14);
+        color: var(--accent-text);
+        border: 1px solid rgba(var(--accent-rgb), 0.35);
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .profile-alert {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        border: 1px solid;
+    }
+
+    .profile-alert.success {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #0a8f63;
+    }
+
+    [data-theme="dark"] .profile-alert.success { color: #6ee7b7; }
+
+    .profile-alert.error {
+        background: rgba(var(--accent-rgb), 0.12);
+        border-color: rgba(var(--accent-rgb), 0.4);
+        color: var(--accent-text);
+    }
+
+    .privacy-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .privacy-row .info {
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .privacy-row .info strong {
+        display: block;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
+
+    .privacy-row .info span {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+    }
+
+    .privacy-row input[type="date"] {
+        padding: 10px 14px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.92rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .privacy-row input[type="date"]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .privacy-row input[type="text"] {
+        flex: 1;
+        min-width: 160px;
+        padding: 10px 14px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-size: 0.92rem;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .privacy-row input[type="text"]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-main);
+        white-space: nowrap;
+    }
+
+    .check-label input {
+        accent-color: var(--accent);
+        width: 18px;
+        height: 18px;
+    }
+
+    ul.visibility-options {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0 0;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    ul.visibility-options li {
+        flex: 1;
+        min-width: 170px;
+        display: flex;
+    }
+
+    ul.visibility-options label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px 14px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    ul.visibility-options label:hover {
+        border-color: var(--accent);
+        background: rgba(var(--accent-rgb), 0.06);
+    }
+
+    ul.visibility-options input[type="radio"] {
+        accent-color: var(--accent);
+        width: auto;
+        margin: 0;
+    }
+
+    .list-user-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        border-radius: var(--radius-md);
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .list-user-row .who {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .list-user-row .who strong {
+        color: var(--text-main);
+        font-size: 0.92rem;
+    }
+
+    .list-user-row .who span {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .add-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+
+    .empty-hint {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 12px 0;
+        margin: 0;
+    }
+</style>
+
+<div class="settings-page">
+    <div class="settings-hero">
+        <h1><i class="fa-solid fa-sliders"></i> Настройки</h1>
+        <a href="{% url 'profile' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> В профиль
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="profile-alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Оформление: тема -->
+    <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-circle-half-stroke"></i> Тема оформления</div>
+
+        <div class="theme-grid">
+            <button type="button" class="theme-card" data-set-theme="dark">
+                <div class="theme-preview dark">
+                    <div class="bar accent-line"></div>
+                    <div class="block"></div>
+                </div>
+                <strong>Тёмная тема</strong>
+                <small>Классика MangaSpace — тёмный фон и оранжевый акцент</small>
+            </button>
+
+            <button type="button" class="theme-card" data-set-theme="light">
+                <div class="theme-preview light">
+                    <div class="bar accent-line"></div>
+                    <div class="block"></div>
+                </div>
+                <strong>Светлая тема</strong>
+                <small>Светлый фон для чтения при ярком освещении</small>
+            </button>
+        </div>
+
+        <p class="settings-hint"><i class="fa-solid fa-wand-magic-sparkles"></i> Выбор сохраняется в браузере и применяется сразу.</p>
+    </div>
+
+    <!-- Оформление: акцентный цвет -->
+    <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-palette"></i> Акцентный цвет</div>
+
+        <div class="swatch-row">
+            <button type="button" class="swatch" data-accent="orange" title="Оранжевый"></button>
+            <button type="button" class="swatch" data-accent="pink" title="Розовый"></button>
+            <button type="button" class="swatch" data-accent="violet" title="Фиолетовый"></button>
+            <button type="button" class="swatch" data-accent="blue" title="Синий"></button>
+            <button type="button" class="swatch" data-accent="emerald" title="Изумрудный"></button>
+            <button type="button" class="swatch" data-accent="gold" title="Золотой"></button>
+        </div>
+
+        <div class="swatch-names">
+            <span class="name">Оранж.</span>
+            <span class="name">Розовый</span>
+            <span class="name">Фиол.</span>
+            <span class="name">Синий</span>
+            <span class="name">Зелёный</span>
+            <span class="name">Золото</span>
+        </div>
+
+        <div class="custom-color-row" data-custom-accent-row>
+            <label class="custom-color-label" for="customAccentPicker">
+                <i class="fa-solid fa-eye-dropper"></i> Свой цвет
+            </label>
+            <input type="color" id="customAccentPicker" class="color-picker" value="#ff7a1a" data-custom-accent>
+            <code class="custom-color-hex" data-custom-accent-hex>#ff7a1a</code>
+        </div>
+
+        <p class="settings-hint">По умолчанию в тёмной теме используется оранжевый акцент — либо выберите свой цвет пипеткой.</p>
+    </div>
+
+    <!-- Оформление: цвет фона -->
+    <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-fill-drip"></i> Цвет фона</div>
+
+        <div class="custom-color-row" data-custom-bg-row>
+            <label class="custom-color-label" for="customBgPicker">
+                <i class="fa-solid fa-fill-drip"></i> Основной фон
+            </label>
+            <input type="color" id="customBgPicker" class="color-picker" value="#0a0b10" data-custom-bg>
+            <code class="custom-color-hex" data-custom-bg-hex>#0a0b10</code>
+            <button type="button" class="btn btn-secondary btn-compact" data-reset-bg>
+                <i class="fa-solid fa-rotate-left"></i> Сбросить
+            </button>
+        </div>
+
+        <p class="settings-hint">Меняет основной фон страницы под текущую тему. Карточки и текст остаются в стилях темы.</p>
+    </div>
+
+    <!-- Анимации -->
+    <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Анимации интерфейса</div>
+
+        <div class="switch-row">
+            <div class="switch-label">
+                <strong>Анимации и эффекты</strong>
+                <span>Появление блоков при скролле, наклон карточек, всплывающие подсказки</span>
+            </div>
+            <button type="button" class="switch on" data-set-anim aria-pressed="true" title="Включить/выключить анимации"></button>
+        </div>
+
+        <div class="settings-actions">
+            <button type="button" class="btn btn-secondary" data-reset-prefs>
+                <i class="fa-solid fa-rotate-left"></i> Сбросить настройки
+            </button>
+        </div>
+    </div>
+
+    <!-- Аккаунт -->
+    {% if user.is_authenticated %}
+        <div class="settings-card">
+            <div class="settings-card-title"><i class="fa-solid fa-user-pen"></i> Аккаунт</div>
+
+            <div class="role-status">
+                <div class="role-info">
+                    <span class="role-badge"><i class="fa-solid fa-id-badge"></i> {{ user_profile.get_role_display|default:"Читатель" }}</span>
+                    <strong>{{ user.username }}</strong>
+                    <span>Сейчас: {{ user_profile.get_role_display|default:"Читатель" }}</span>
+                </div>
+
+                {% if user_profile.role == 'reader' %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="role" value="author">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-pen-nib"></i> Стать автором
+                        </button>
+                    </form>
+                {% elif user_profile.role == 'author' %}
+                    {% if not has_titles %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="reader">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fa-solid fa-book-reader"></i> Вернуться читателем
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="settings-hint" style="margin: 0;">
+                            <i class="fa-solid fa-lock"></i> Роль нельзя сменить — у вас уже есть выложенные тайтлы
+                        </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="settings-actions">
+                <a href="{% url 'my_titles' %}" class="btn btn-secondary"><i class="fa-solid fa-feather"></i> Мои тайтлы</a>
+                <a href="{% url 'my_bookmarks' %}" class="btn btn-secondary"><i class="fa-regular fa-bookmark"></i> Мои закладки</a>
+            </div>
+        </div>
+
+        <!-- Сообщить о баге / предложить идею -->
+        <div class="settings-card">
+            <div class="settings-card-title"><i class="fa-solid fa-bug"></i> Сообщить о баге или предложить идею</div>
+            <p class="settings-hint">
+                <i class="fa-solid fa-comments"></i> Сообщение уйдёт в чат поддержки — его сразу увидят администраторы и разработчик.
+                Ответ придёт сюда же.
+            </p>
+
+            <form method="post" action="{% url 'support' %}" style="margin-top: 12px;">
+                {% csrf_token %}
+                <textarea name="text" maxlength="2000" rows="4" required
+                          placeholder="Опишите баг (что сделали, что ожидали, что получили) или вашу идею..."
+                          style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); font-family: inherit; font-size: 0.92rem; resize: vertical; outline: none; box-sizing: border-box;"></textarea>
+                <div class="settings-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> Отправить разработчику
+                    </button>
+                    <a href="{% url 'support' %}" class="btn btn-secondary">
+                        <i class="fa-solid fa-bug"></i> Открыть чат поддержки
+                        {% if support_unread > 0 %}
+                            <span class="user-menu-badge">{{ support_unread }}</span>
+                        {% endif %}
+                    </a>
+                    {% if user.is_site_admin %}
+                        <a href="{% url 'admin_chat' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-user-shield"></i> Чат админов
+                            {% if admin_chat_unread > 0 %}
+                                <span class="user-menu-badge">{{ admin_chat_unread }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Приватность: ID, дата рождения, закрытый аккаунт, закладки -->
+        <div class="settings-card">
+            <div class="settings-card-title"><i class="fa-solid fa-user-shield"></i> Аккаунт и приватность</div>
+
+            <div class="role-status" style="margin-bottom: 16px;">
+                <div class="role-info">
+                    <span class="role-badge"><i class="fa-solid fa-id-badge"></i> Ваш ID</span>
+                    <strong>{{ user_profile.public_id|default:"—" }}</strong>
+                    <span>По нему вас можно найти в поиске друзей</span>
+                </div>
+                <button type="button" class="btn btn-secondary" id="copy-id-btn" data-id="{{ user_profile.public_id|default:'' }}">
+                    <i class="fa-regular fa-copy"></i> Скопировать ID
+                </button>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_account">
+
+                <div class="privacy-row">
+                    <div class="info">
+                        <strong><i class="fa-solid fa-cake-candles"></i> Дата рождения</strong>
+                        <span>Можно изменить в любой момент</span>
+                    </div>
+                    {{ account_form.birth_date }}
+                </div>
+
+                <div class="privacy-row" style="align-items: flex-start; flex-direction: column;">
+                    <div class="info">
+                        <strong><i class="fa-solid fa-bookmark"></i> Кто может смотреть мои закладки</strong>
+                        <span>При режиме «Никто» добавьте исключения в следующем блоке</span>
+                    </div>
+                    {{ account_form.bookmarks_visibility }}
+                </div>
+
+                <div class="privacy-row">
+                    <div class="info">
+                        <strong><i class="fa-solid fa-lock"></i> Закрытый аккаунт</strong>
+                        <span>Профиль, тайтлы и закладки смогут смотреть только друзья</span>
+                    </div>
+                    <label class="check-label">
+                        {{ account_form.is_closed }} Включено
+                    </label>
+                </div>
+
+                {% if user_profile.is_adult %}
+                    <div class="privacy-row">
+                        <div class="info">
+                            <strong><i class="fa-solid fa-eye-slash"></i> Скрывать NSFW-тайтлы</strong>
+                            <span>Тайтлы с меткой 18+ не будут вам показываться</span>
+                        </div>
+                        <label class="check-label">
+                            {{ account_form.hide_nsfw }} Включено
+                        </label>
+                    </div>
+                {% endif %}
+
+                <div class="settings-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Исключения для закладок -->
+        <div class="settings-card">
+            <div class="settings-card-title"><i class="fa-solid fa-user-lock"></i> Исключения для закладок</div>
+            <p class="settings-hint">
+                {% if bookmarks_visibility == 'nobody' %}
+                    <i class="fa-solid fa-eye"></i> Сейчас закладки скрыты от всех — эти пользователи всё равно увидят их.
+                {% else %}
+                    <i class="fa-solid fa-eye"></i> Эти пользователи всегда увидят ваши закладки, даже если вы скроете их от всех.
+                {% endif %}
+            </p>
+
+            <form method="post" class="add-row" style="margin-top: 12px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="access_add">
+                <input type="text" name="username" placeholder="Ник или ID друга" required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Добавить
+                </button>
+            </form>
+
+            {% for access in bookmark_access_list %}
+                <div class="list-user-row">
+                    <div class="who">
+                        <i class="fa-solid fa-user" style="color: var(--accent-text);"></i>
+                        <a href="{% url 'user_profile' access.viewer.username %}" style="color: var(--text-main); font-weight: 700; text-decoration: none;">
+                            {{ access.viewer.username }}
+                        </a>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="access_remove">
+                        <input type="hidden" name="access_id" value="{{ access.id }}">
+                        <button type="submit" class="btn btn-ghost btn-sm-plain" style="padding: 6px 12px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-xmark"></i> Убрать
+                        </button>
+                    </form>
+                </div>
+            {% empty %}
+                <p class="empty-hint"><i class="fa-regular fa-folder-open"></i> Исключений пока нет</p>
+            {% endfor %}
+        </div>
+
+        <!-- Чёрный список -->
+        <div class="settings-card">
+            <div class="settings-card-title"><i class="fa-solid fa-ban"></i> Чёрный список</div>
+            <p class="settings-hint">
+                <i class="fa-solid fa-shield-halved"></i>
+                Заблокированные не увидят ваш профиль, не смогут писать заявки в друзья. Дружба и заявки удаляются.
+            </p>
+
+            <form method="post" class="add-row" style="margin-top: 12px;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="blocklist_add">
+                <input type="text" name="username" placeholder="Ник или ID пользователя" required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-ban"></i> Заблокировать
+                </button>
+            </form>
+
+            {% for block in blocked_list %}
+                <div class="list-user-row">
+                    <div class="who">
+                        <i class="fa-solid fa-user-secret" style="color: #ff8fa8;"></i>
+                        <a href="{% url 'user_profile' block.blocked.username %}" style="color: var(--text-main); font-weight: 700; text-decoration: none;">
+                            {{ block.blocked.username }}
+                        </a>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="blocklist_remove">
+                        <input type="hidden" name="block_id" value="{{ block.id }}">
+                        <button type="submit" class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-lock-open"></i> Разблокировать
+                        </button>
+                    </form>
+                </div>
+            {% empty %}
+                <p class="empty-hint"><i class="fa-regular fa-folder-open"></i> Чёрный список пуст</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('copy-id-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(id).then(function () {
+                if (window.MangaSpace && MangaSpace.toast) {
+                    MangaSpace.toast('ID скопирован: ' + id);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

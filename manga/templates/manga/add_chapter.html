@@ -11,13 +11,13 @@
         border: 1px solid var(--border-highlight);
         border-radius: var(--radius-lg);
         padding: 32px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-lg);
     }
 
     .form-title {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--text-main);
         margin-bottom: 24px;
         display: flex;
         align-items: center;
@@ -27,7 +27,7 @@
     }
 
     .form-title i {
-        color: var(--accent);
+        color: var(--accent-text);
     }
 
     .section-title {
@@ -59,10 +59,10 @@
     .form-group textarea {
         width: 100%;
         padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--fill-1);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-md);
-        color: #fff;
+        color: var(--text-main);
         font-size: 0.95rem;
         outline: none;
         transition: var(--transition);
@@ -71,7 +71,7 @@
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
-        background: rgba(0, 0, 0, 0.3);
+        background: var(--input-bg-focus);
         border-color: var(--accent);
         box-shadow: 0 0 15px var(--accent-glow);
     }
@@ -81,7 +81,7 @@
         border-radius: var(--radius-md);
         padding: 30px;
         text-align: center;
-        background: rgba(255, 255, 255, 0.02);
+        background: var(--fill-1);
         cursor: pointer;
         transition: var(--transition);
         position: relative;
@@ -89,12 +89,12 @@
 
     .file-dropzone:hover, .file-dropzone.dragover {
         border-color: var(--accent);
-        background: rgba(255, 42, 95, 0.05);
+        background: rgba(var(--accent-rgb), 0.05);
     }
 
     .file-dropzone i {
         font-size: 2.5rem;
-        color: var(--accent);
+        color: var(--accent-text);
         margin-bottom: 10px;
         display: block;
     }
@@ -162,12 +162,12 @@
         <div class="section-title">
             <i class="fa-solid fa-file-image"></i> Страницы главы
         </div>
-        
+
         <div class="file-dropzone" id="dropzone">
             <i class="fa-solid fa-images"></i>
             <p>Перетащите изображения сюда или нажмите для выбора</p>
             <span>Поддерживаются PNG, JPG, WEBP</span>
-            
+
             {{ page_form.images }}
         </div>
 
@@ -176,6 +176,27 @@
         {% endif %}
 
         <div id="file-count"></div>
+
+        <div class="section-title">
+            <i class="fa-solid fa-file-zipper"></i> Или ZIP-архив
+        </div>
+
+        <div class="file-dropzone zip-dropzone" id="zipDropzone">
+            <i class="fa-solid fa-box-archive"></i>
+            <p>ZIP со страницами — распакуется автоматически</p>
+            <span>Картинки внутри архива будут отсортированы по номерам</span>
+
+            {{ page_form.zip_file }}
+        </div>
+
+        {% if page_form.zip_file.errors %}
+            <div class="file-errors">{{ page_form.zip_file.errors }}</div>
+        {% endif %}
+        {% if page_form.non_field_errors %}
+            <div class="file-errors">{{ page_form.non_field_errors }}</div>
+        {% endif %}
+
+        <div id="zip-count"></div>
 
         <button type="submit" id="submit-btn" class="btn btn-primary submit-btn">
             <i class="fa-solid fa-upload"></i> <span id="btn-text">Загрузить главу</span>
@@ -192,6 +213,10 @@
         const submitBtn = document.getElementById('submit-btn');
         const btnText = document.getElementById('btn-text');
 
+        const zipDropzone = document.getElementById('zipDropzone');
+        const zipInput = zipDropzone.querySelector('input[type="file"]');
+        const zipCount = document.getElementById('zip-count');
+
         const updateFileCount = (files) => {
             const count = files.length;
             fileCount.innerHTML = count
@@ -199,29 +224,45 @@
                 : '';
         };
 
-        fileInput.addEventListener('change', () => updateFileCount(fileInput.files));
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                dropzone.classList.add('dragover');
-            }, false);
-        });
-
-        dropzone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-        }, false);
-
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-
-            if (e.dataTransfer && e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                updateFileCount(fileInput.files);
+        const updateZipCount = () => {
+            const file = zipInput.files[0];
+            if (file) {
+                const mb = (file.size / (1024 * 1024)).toFixed(1);
+                zipCount.innerHTML = `<i class="fa-solid fa-circle-check"></i> Архив: <strong>${file.name}</strong> (${mb} МБ)`;
+            } else {
+                zipCount.innerHTML = '';
             }
-        }, false);
+        };
+
+        fileInput.addEventListener('change', () => updateFileCount(fileInput.files));
+        zipInput.addEventListener('change', updateZipCount);
+
+        const setupDropzone = (zone, input, counterCb, listCb) => {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                zone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    zone.classList.add('dragover');
+                }, false);
+            });
+
+            zone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+            }, false);
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+
+                if (e.dataTransfer && e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    counterCb(input.files);
+                }
+            }, false);
+        };
+
+        setupDropzone(dropzone, fileInput, updateFileCount, null);
+        setupDropzone(zipDropzone, zipInput, updateZipCount, null);
 
         uploadForm.addEventListener('submit', () => {
             submitBtn.disabled = true;

@@ -1,0 +1,204 @@
+{% extends 'manga/base.html' %}
+
+{% block title %}Объявление администрации — MangaSpace{% endblock %}
+
+{% block content %}
+<style>
+    .announce-page {
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .announce-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .announce-hero h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .announce-hero h1 i {
+        color: var(--accent-text);
+    }
+
+    .announce-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    .announce-card h2 {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .announce-card h2 i {
+        color: var(--accent-text);
+    }
+
+    .announce-card .hint {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+
+    .announce-card label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--text-main);
+        margin-bottom: 6px;
+    }
+
+    .announce-card input[type="text"],
+    .announce-card textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.92rem;
+        outline: none;
+        transition: var(--transition);
+        margin-bottom: 14px;
+        resize: vertical;
+    }
+
+    .announce-card input[type="text"]:focus,
+    .announce-card textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .announce-item {
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        margin-bottom: 10px;
+    }
+
+    .announce-item strong {
+        display: block;
+        color: var(--text-main);
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+
+    .announce-item p {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+        margin: 0 0 8px 0;
+        white-space: pre-wrap;
+    }
+
+    .announce-item time {
+        font-size: 0.76rem;
+        color: var(--text-faint);
+    }
+
+    .empty-hint {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        text-align: center;
+        padding: 18px 0;
+        margin: 0;
+    }
+
+    .profile-alert {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        border: 1px solid;
+    }
+
+    .profile-alert.success {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+    }
+
+    .profile-alert.error {
+        background: rgba(var(--accent-rgb), 0.12);
+        border-color: rgba(var(--accent-rgb), 0.4);
+        color: var(--accent-text);
+    }
+</style>
+
+<div class="announce-page">
+    <div class="announce-hero">
+        <h1><i class="fa-solid fa-bullhorn"></i> Объявление администрации</h1>
+        <a href="{% url 'admin_chat' %}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Чат админов
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="profile-alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="announce-card">
+        <h2><i class="fa-solid fa-paper-plane"></i> Новое объявление</h2>
+        <p class="hint">
+            <i class="fa-solid fa-users"></i>
+            Сообщение придёт <strong>всем пользователям</strong> (включая администраторов)
+            как уведомление в колокольчике.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <label for="announce-title">Заголовок</label>
+            <input type="text" id="announce-title" name="title" maxlength="255" required
+                   placeholder="Например: Техработы на сайте">
+
+            <label for="announce-message">Текст объявления</label>
+            <textarea id="announce-message" name="message" rows="5" required
+                      placeholder="Опишите, что хотите сообщить пользователям..."></textarea>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-bullhorn"></i> Отправить всем
+            </button>
+        </form>
+    </div>
+
+    <div class="announce-card">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Последние объявления</h2>
+        {% for n in recent_announcements %}
+            <div class="announce-item">
+                <strong><i class="fa-solid fa-bullhorn" style="color: var(--accent-text);"></i> {{ n.title }}</strong>
+                <p>{{ n.message }}</p>
+                <time>{{ n.created_at|date:"d.m.Y H:i" }}</time>
+            </div>
+        {% empty %}
+            <p class="empty-hint"><i class="fa-regular fa-folder-open"></i> Объявлений пока нет</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

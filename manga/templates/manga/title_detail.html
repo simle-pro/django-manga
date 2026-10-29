@@ -17,11 +17,12 @@
     }
 
     .title-cover-card {
+        position: relative;
         background: var(--bg-surface);
         border: 1px solid var(--border-highlight);
         border-radius: var(--radius-lg);
         padding: 12px;
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-lg);
     }
 
     .title-cover-img {
@@ -35,7 +36,7 @@
     .cover-placeholder {
         width: 100%;
         height: 380px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--fill-1);
         border-radius: var(--radius-md);
         display: flex;
         align-items: center;
@@ -51,6 +52,8 @@
         border: 1px solid var(--border-color);
         padding: 16px;
         border-radius: var(--radius-md);
+        overflow: hidden;
+        min-width: 0;
     }
 
     .action-box label {
@@ -66,8 +69,8 @@
     .custom-select {
         width: 100%;
         padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.04);
-        color: #fff;
+        background: var(--fill-1);
+        color: var(--text-main);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-md);
         font-family: inherit;
@@ -82,6 +85,313 @@
         box-shadow: 0 0 12px var(--accent-glow);
     }
 
+    /* --- Закладка: кнопки-статусы --- */
+    .bm-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .bm-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 6px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: inherit;
+        text-align: center;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .bm-btn i {
+        flex-shrink: 0;
+    }
+
+    .bm-btn:hover {
+        color: var(--text-main);
+        border-color: rgba(var(--accent-rgb), 0.5);
+        background: rgba(var(--accent-rgb), 0.08);
+    }
+
+    .bm-btn.active {
+        background: rgba(var(--accent-rgb), 0.16);
+        border-color: var(--accent);
+        color: var(--accent-text);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .bm-remove {
+        grid-column: 1 / -1;
+        justify-content: center;
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+    .bm-remove:hover {
+        color: #ef4444;
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.16);
+    }
+
+    .bm-login-hint {
+        display: block;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+
+    /* Заметка к закладке */
+    .bm-note-input {
+        width: 100%;
+        margin-top: 10px;
+        padding: 9px 12px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.85rem;
+        outline: none;
+        resize: vertical;
+        box-sizing: border-box;
+        transition: var(--transition);
+    }
+
+    .bm-note-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .bm-note-save {
+        width: 100%;
+        margin-top: 8px;
+        padding: 7px 10px;
+        font-size: 0.8rem;
+        background: var(--fill-2);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: var(--transition);
+    }
+
+    .bm-note-save:hover {
+        color: var(--accent-text);
+        border-color: var(--accent);
+    }
+
+    .bm-note-show {
+        margin-top: 10px;
+        padding: 9px 12px;
+        background: rgba(var(--accent-rgb), 0.07);
+        border: 1px dashed rgba(var(--accent-rgb), 0.3);
+        border-radius: var(--radius-md);
+        font-size: 0.84rem;
+        color: var(--text-main);
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .bm-note-show i {
+        color: var(--accent-text);
+        margin-right: 6px;
+    }
+
+    /* Совместный перевод */
+    .collab-hint {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+        margin-bottom: 10px;
+    }
+
+    .collab-note-input {
+        width: 100%;
+        padding: 9px 12px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.85rem;
+        outline: none;
+        resize: vertical;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+        transition: var(--transition);
+    }
+
+    .collab-note-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .collab-status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: var(--radius-md);
+        font-size: 0.84rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .collab-status-badge.pending {
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+    }
+
+    .collab-status-badge.accepted {
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        color: #6ee7b7;
+    }
+
+    .collab-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .collab-row a {
+        color: var(--text-main);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .collab-row a:hover {
+        color: var(--accent-text);
+    }
+
+    .collab-row-msg {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .chapter-edit-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--fill-2);
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+
+    .chapter-edit-btn:hover {
+        color: var(--accent-text);
+        border-color: var(--accent);
+    }
+
+    /* --- Рейтинг: звёзды --- */
+    .star-rating {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .stars-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: 0;
+        overflow: hidden;
+    }
+
+    .star-btn {
+        background: none;
+        border: none;
+        padding: 1px 0;
+        cursor: pointer;
+        font-size: 1.2rem;
+        line-height: 1.2;
+        color: var(--fill-3);
+        transition: color 0.12s ease, transform 0.12s ease;
+        font-family: inherit;
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+
+    .star-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .star-btn.lit {
+        color: #f5a524;
+        text-shadow: 0 0 8px rgba(245, 165, 36, 0.4);
+    }
+
+    .star-btn.hover-lit {
+        color: #ffd166;
+    }
+
+    .rating-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .rating-meta .score-value {
+        color: var(--accent-text);
+        font-weight: 800;
+    }
+
+    .rating-clear {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        padding: 2px 6px;
+        border-radius: 6px;
+        transition: var(--transition);
+    }
+
+    .rating-clear:hover {
+        color: #f87171;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .star-rating.is-loading {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
     /* Правая колонка */
     .title-main {
         flex: 1;
@@ -91,7 +401,7 @@
     .title-heading {
         font-size: 2.2rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--text-main);
         margin-bottom: 4px;
         line-height: 1.2;
     }
@@ -123,7 +433,7 @@
     }
 
     .stat-pill i {
-        color: var(--accent);
+        color: var(--accent-text);
     }
 
     .genre-tags {
@@ -134,9 +444,9 @@
     }
 
     .genre-tag {
-        background: rgba(255, 42, 95, 0.1);
-        color: var(--accent);
-        border: 1px solid rgba(255, 42, 95, 0.2);
+        background: rgba(var(--accent-rgb), 0.1);
+        color: var(--accent-text);
+        border: 1px solid rgba(var(--accent-rgb), 0.2);
         padding: 5px 14px;
         border-radius: 20px;
         font-size: 0.82rem;
@@ -146,7 +456,7 @@
     .section-title {
         font-size: 1.3rem;
         font-weight: 800;
-        color: #fff;
+        color: var(--text-main);
         margin: 28px 0 14px 0;
         display: flex;
         align-items: center;
@@ -184,7 +494,7 @@
 
     .chapter-card:hover {
         border-color: var(--accent);
-        background: rgba(255, 42, 95, 0.04);
+        background: rgba(var(--accent-rgb), 0.04);
     }
 
     .chapter-card.read {
@@ -194,7 +504,7 @@
 
     .chapter-link {
         text-decoration: none;
-        color: #fff;
+        color: var(--text-main);
         font-weight: 600;
         font-size: 0.95rem;
         display: flex;
@@ -229,10 +539,10 @@
     .comment-textarea {
         width: 100%;
         padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--fill-1);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-md);
-        color: #fff;
+        color: var(--text-main);
         font-family: inherit;
         font-size: 0.95rem;
         outline: none;
@@ -254,6 +564,79 @@
         margin-bottom: 12px;
     }
 
+    /* Вложенные ответы */
+    .comment-replies {
+        margin-top: 12px;
+        padding-left: 18px;
+        border-left: 2px solid rgba(var(--accent-rgb), 0.25);
+    }
+
+    .comment-reply {
+        background: var(--fill-1);
+        border-color: rgba(var(--accent-rgb), 0.15);
+    }
+
+    .comment-reply-to {
+        font-weight: 600;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-left: 8px;
+    }
+
+    .comment-reply-to i {
+        color: var(--accent-text);
+    }
+
+    .comment-actions {
+        margin-top: 10px;
+    }
+
+    .reply-toggle-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+    .reply-toggle-btn:hover {
+        color: var(--accent-text);
+        background: rgba(var(--accent-rgb), 0.08);
+    }
+
+    .reply-form-box {
+        margin-top: 10px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+    }
+
+    .reply-form-box form {
+        margin: 0;
+    }
+
+    .reply-form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .reply-submit-btn {
+        padding: 7px 16px;
+        font-size: 0.85rem;
+    }
+
+    .reply-cancel-btn {
+        padding: 7px 16px;
+        font-size: 0.85rem;
+    }
+
     .comment-header {
         display: flex;
         justify-content: space-between;
@@ -263,8 +646,19 @@
 
     .comment-author {
         font-weight: 700;
-        color: var(--accent);
+        color: var(--accent-text);
         font-size: 0.95rem;
+    }
+
+    .comment-author-link {
+        color: inherit;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .comment-author-link:hover {
+        text-decoration: underline;
+        color: var(--accent);
     }
 
     .comment-date {
@@ -298,6 +692,7 @@
     <!-- Левая панель (Обложка, Закладка, Оценка) -->
     <aside class="title-sidebar">
         <div class="title-cover-card">
+            {% if title.is_nsfw %}<span class="nsfw-badge" style="top: 20px; right: 20px;">NSFW</span>{% endif %}
             {% if title.cover %}
                 <img src="{{ title.cover.url }}" alt="{{ title.name }}" class="title-cover-img">
             {% else %}
@@ -313,17 +708,40 @@
             {% if user.is_authenticated %}
                 <form method="post" action="{% url 'set_bookmark' title.slug %}">
                     {% csrf_token %}
-                    <select name="status" class="custom-select" onchange="this.form.submit()">
-                        <option value="remove" {% if not user_bookmark %}selected{% endif %}>➕ Добавить в закладки</option>
-                        <option value="reading" {% if user_bookmark and user_bookmark.status == 'reading' %}selected{% endif %}>📖 Читаю</option>
-                        <option value="planned" {% if user_bookmark and user_bookmark.status == 'planned' %}selected{% endif %}>📌 В планах</option>
-                        <option value="completed" {% if user_bookmark and user_bookmark.status == 'completed' %}selected{% endif %}>✅ Прочитано</option>
-                        <option value="favorite" {% if user_bookmark and user_bookmark.status == 'favorite' %}selected{% endif %}>❤️ Любимое</option>
-                        <option value="dropped" {% if user_bookmark and user_bookmark.status == 'dropped' %}selected{% endif %}>❌ Брошено</option>
-                    </select>
+                    <div class="bm-grid">
+                        <button type="submit" name="status" value="reading" class="bm-btn {% if user_bookmark and user_bookmark.status == 'reading' %}active{% endif %}">
+                            <i class="fa-solid fa-book-open"></i> Читаю
+                        </button>
+                        <button type="submit" name="status" value="planned" class="bm-btn {% if user_bookmark and user_bookmark.status == 'planned' %}active{% endif %}">
+                            <i class="fa-solid fa-bookmark"></i> В планах
+                        </button>
+                        <button type="submit" name="status" value="completed" class="bm-btn {% if user_bookmark and user_bookmark.status == 'completed' %}active{% endif %}">
+                            <i class="fa-solid fa-circle-check"></i> Прочитано
+                        </button>
+                        <button type="submit" name="status" value="favorite" class="bm-btn {% if user_bookmark and user_bookmark.status == 'favorite' %}active{% endif %}">
+                            <i class="fa-solid fa-heart"></i> Любимое
+                        </button>
+                        <button type="submit" name="status" value="dropped" class="bm-btn {% if user_bookmark and user_bookmark.status == 'dropped' %}active{% endif %}">
+                            <i class="fa-solid fa-circle-xmark"></i> Брошено
+                        </button>
+                        {% if user_bookmark %}
+                            <button type="submit" name="status" value="remove" class="bm-btn bm-remove">
+                                <i class="fa-solid fa-trash"></i> Убрать
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Своя заметка к закладке -->
+                    <textarea name="note" rows="2" class="bm-note-input"
+                              placeholder="Ваша заметка к закладке (необязательно)...">{{ user_bookmark.note|default:"" }}</textarea>
+                    {% if user_bookmark %}
+                        <button type="submit" name="status" value="save_note" class="bm-note-save">
+                            <i class="fa-solid fa-floppy-disk"></i> Сохранить заметку
+                        </button>
+                    {% endif %}
                 </form>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary" style="width: 100%; display: inline-block; text-align: center; text-decoration: none; padding: 10px; font-size: 0.88rem;">Войдите для закладок</a>
+                <a href="{% url 'login' %}" class="btn btn-primary bm-login-hint">Войдите для закладок</a>
             {% endif %}
         </div>
 
@@ -331,28 +749,99 @@
         <div class="action-box">
             <label><i class="fa-solid fa-star"></i> Оценить тайтл</label>
             {% if user.is_authenticated %}
-                <form method="post" action="{% url 'set_rating' title.slug %}" style="display: flex; gap: 8px;">
-                    {% csrf_token %}
-                    <select name="score" class="custom-select" style="flex: 1;">
-                        {% for i in "123456789"|make_list %}
-                            <option value="{{ forloop.counter }}" {% if user_rating and user_rating.score == forloop.counter %}selected{% endif %}>{{ forloop.counter }} ★</option>
-                        {% endfor %}
-                        <option value="10" {% if user_rating and user_rating.score == 10 %}selected{% endif %}>10 ★</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary" style="padding: 0 16px;">ОК</button>
-                </form>
+                <div class="star-rating" id="starRating" data-score="{{ user_rating.score|default:'' }}">
+                    <div class="stars-row" id="starsRow" role="group" aria-label="Оценка от 1 до 10"></div>
+                    <div class="rating-meta">
+                        <span>Ваша оценка: <span class="score-value" id="ratingScore">{% if user_rating %}{{ user_rating.score }}{% else %}—{% endif %}</span> / 10</span>
+                        {% if user_rating %}
+                            <button type="button" class="rating-clear" id="ratingClear" title="Сбросить оценку">
+                                <i class="fa-solid fa-xmark"></i> Сбросить
+                            </button>
+                        {% endif %}
+                    </div>
+                    <form method="post" action="{% url 'set_rating' title.slug %}" id="ratingForm" hidden>
+                        {% csrf_token %}
+                        <input type="hidden" name="score" id="ratingInput" value="">
+                    </form>
+                </div>
             {% else %}
                 <span style="font-size: 0.85rem; color: var(--text-muted);">Доступно после входа</span>
+            {% endif %}
+        </div>
+
+        <!-- Совместный перевод -->
+        <div class="action-box">
+            <label><i class="fa-solid fa-people-arrows"></i> Совместный перевод</label>
+            {% if user.is_authenticated %}
+                {% if is_title_author %}
+                    <div class="collab-status-badge accepted">
+                        <i class="fa-solid fa-crown"></i> Вы автор этого тайтла
+                    </div>
+                    {% if collab_pending %}
+                        <a href="#collab-section" class="btn btn-secondary" style="width: 100%; font-size: 0.82rem; padding: 8px;">
+                            <i class="fa-solid fa-hourglass-half"></i> Запросов: {{ collab_pending|length }}
+                        </a>
+                    {% endif %}
+                {% elif is_collaborator %}
+                    <div class="collab-status-badge accepted">
+                        <i class="fa-solid fa-people-group"></i> Вы соавтор — можно добавлять главы
+                    </div>
+                    <a href="{% url 'add_chapter' title.slug %}" class="btn btn-success" style="width: 100%; font-size: 0.82rem; padding: 8px;">
+                        <i class="fa-solid fa-plus"></i> Добавить главу
+                    </a>
+                {% elif collab_request and collab_request.status == 'pending' %}
+                    <div class="collab-status-badge pending">
+                        <i class="fa-solid fa-hourglass-half"></i> Запрос отправлен — ждём автора
+                    </div>
+                {% elif can_request_collab %}
+                    <p class="collab-hint">
+                        Дубликаты тайтлов запрещены. Хотите переводить? Запросите права —
+                        автор разрешит вам добавлять главы к его тайтлу.
+                    </p>
+                    <form method="post" action="{% url 'request_collab' title.slug %}">
+                        {% csrf_token %}
+                        <textarea name="message" rows="2" class="collab-note-input"
+                                  placeholder="Сообщение автору (необязательно)..."></textarea>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.82rem; padding: 8px;">
+                            <i class="fa-solid fa-paper-plane"></i> Запросить общий перевод
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="collab-hint">
+                        Запрос на совместный перевод могут отправлять только авторы и администраторы.
+                    </p>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary bm-login-hint">Войдите, чтобы запросить перевод</a>
             {% endif %}
         </div>
     </aside>
 
     <!-- Правая основная панель -->
     <main class="title-main">
-        <h1 class="title-heading">{{ title.name }}</h1>
-        {% if title.original_name %}
-            <div class="title-subheading">{{ title.original_name }}</div>
-        {% endif %}
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="min-width: 0;">
+                <h1 class="title-heading" style="margin-bottom: 4px;">{{ title.name }}</h1>
+                {% if title.original_name %}
+                    <div class="title-subheading">{{ title.original_name }}</div>
+                {% endif %}
+            </div>
+
+            {% if is_title_author %}
+                <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                    <a href="{% url 'edit_title' title.slug %}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 14px; text-decoration: none;">
+                        <i class="fa-solid fa-pen-to-square"></i> Редактировать
+                    </a>
+                    <form method="post" action="{% url 'delete_title' title.slug %}" style="margin: 0;"
+                          onsubmit="return confirm('Удалить тайтл «{{ title.name }}» со всеми главами? Это действие нельзя отменить.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.35); font-size: 0.85rem; padding: 8px 14px;">
+                            <i class="fa-solid fa-trash"></i> Удалить
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
 
         <!-- Статистика -->
         <div class="title-stats-bar">
@@ -368,6 +857,18 @@
                 <i class="fa-solid fa-circle-info"></i>
                 <span>{{ title.get_status_display|default:"Онгоинг" }}</span>
             </div>
+            {% if title.is_nsfw %}
+                <span class="stat-pill" style="background: rgba(225, 29, 72, 0.16); border-color: rgba(225, 29, 72, 0.5); color: #ff5f7e; font-weight: 900;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> NSFW 18+
+                </span>
+            {% endif %}
+            <a href="{% url 'user_profile' title.author.username %}" class="stat-pill" style="text-decoration: none;">
+                <i class="fa-solid fa-pen-nib"></i>
+                <span style="color: var(--accent-text); font-weight: 700;">{{ title.author.username }}</span>
+                {% if title.author.role == 'author' or title.author.role == 'admin' %}
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Автор / Переводчик</span>
+                {% endif %}
+            </a>
         </div>
 
         <!-- Жанры -->
@@ -396,7 +897,7 @@
                     </a>
                 {% endif %}
 
-                {% if user == title.author or user.role == 'admin' or user.is_superuser or user.is_staff %}
+                {% if is_title_author or is_collaborator %}
                     <a href="{% url 'add_chapter' title.slug %}" class="btn" style="background: #10b981; color: #fff; font-size: 0.85rem; padding: 8px 14px; text-decoration: none; border-radius: var(--radius-md);">
                         <i class="fa-solid fa-plus"></i> Добавить главу
                     </a>
@@ -429,7 +930,11 @@
                                 {% endif %}
                             </span>
 
-                            {% if user == title.author or user.is_staff or user.role == 'admin' or user.is_superuser %}
+                            {% if is_title_author or is_collaborator %}
+                                <a href="{% url 'edit_chapter' chapter.id %}" class="chapter-edit-btn" title="Редактировать главу">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+
                                 <form action="{% url 'delete_chapter' chapter.id %}" method="post" style="margin: 0;" onsubmit="return confirm('Вы уверены, что хотите удалить эту главу?');">
                                     {% csrf_token %}
                                     <button type="submit" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: var(--transition);">
@@ -443,6 +948,68 @@
             </div>
         {% else %}
             <p style="color: var(--text-muted); font-style: italic; padding: 10px 0;">Глав пока нет.</p>
+        {% endif %}
+
+        <!-- Совместный перевод: управление (только для автора тайтла) -->
+        {% if is_title_author %}
+            <div class="section-title" id="collab-section">
+                <span><i class="fa-solid fa-people-arrows" style="color:var(--accent);"></i> Совместный перевод</span>
+            </div>
+
+            {% if collab_pending %}
+                <div style="margin-bottom: 14px;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">
+                        <i class="fa-solid fa-hourglass-half"></i> Запросы ({{ collab_pending|length }})
+                    </div>
+                    {% for cr in collab_pending %}
+                        <div class="collab-row">
+                            <div>
+                                <a href="{% url 'user_profile' cr.from_user.username %}">{{ cr.from_user.username }}</a>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                    <i class="fa-solid fa-pen-nib"></i> Автор / Переводчик · {{ cr.created_at|date:"d.m.Y" }}
+                                </div>
+                                {% if cr.message %}<div class="collab-row-msg">«{{ cr.message }}»</div>{% endif %}
+                            </div>
+                            <form method="post" action="{% url 'respond_collab' cr.id %}" style="margin: 0; display: flex; gap: 8px;">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="accept" class="btn btn-primary" style="padding: 7px 14px; font-size: 0.82rem;">
+                                    <i class="fa-solid fa-check"></i> Принять
+                                </button>
+                                <button type="submit" name="action" value="decline" class="btn btn-ghost" style="padding: 7px 14px; font-size: 0.82rem;">
+                                    <i class="fa-solid fa-xmark"></i> Отклонить
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if collab_accepted %}
+                <div style="font-size: 0.85rem; font-weight: 700; color: #6ee7b7; margin-bottom: 8px;">
+                    <i class="fa-solid fa-people-group"></i> Соавторы ({{ collab_accepted|length }})
+                </div>
+                {% for cr in collab_accepted %}
+                    <div class="collab-row">
+                        <div>
+                            <a href="{% url 'user_profile' cr.from_user.username %}">{{ cr.from_user.username }}</a>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Добавляет главы с {{ cr.updated_at|date:"d.m.Y" }}
+                            </div>
+                        </div>
+                        <form method="post" action="{% url 'remove_collab' cr.id %}" style="margin: 0;" onsubmit="return confirm('Убрать соавтора?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-ghost" style="padding: 7px 14px; font-size: 0.82rem;">
+                                <i class="fa-solid fa-user-minus"></i> Убрать
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% elif not collab_pending %}
+                <p style="color: var(--text-muted); font-style: italic; font-size: 0.9rem;">
+                    Пока никто не просил права на совместный перевод. Переводчики отправляют запрос
+                    кнопкой в левой панели — вы получите уведомление.
+                </p>
+            {% endif %}
         {% endif %}
 
         <!-- Раздел комментариев -->
@@ -462,22 +1029,145 @@
             </div>
         {% else %}
             <p style="color: var(--text-muted); margin-bottom: 20px;">
-                Чтобы оставить отзыв, <a href="{% url 'login' %}" style="color: var(--accent); text-decoration: underline;">войдите на сайт</a>.
+                Чтобы оставить отзыв, <a href="{% url 'login' %}" style="color: var(--accent-text); text-decoration: underline;">войдите на сайт</a>.
             </p>
         {% endif %}
 
-        {% for comment in comments %}
-            <div class="comment-item">
-                <div class="comment-header">
-                    <span class="comment-author"><i class="fa-solid fa-user-ninja"></i> {{ comment.user.username }}</span>
-                    <span class="comment-date"><i class="fa-regular fa-clock"></i> {{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                </div>
-                <p class="comment-text">{{ comment.text }}</p>
-            </div>
+        {% for comment in comment_tree %}
+            {% include "manga/_comment_thread.html" with comment=comment depth=0 title=title %}
         {% empty %}
             <p style="color: var(--text-muted); font-style: italic;">Пока нет комментариев. Будьте первым!</p>
         {% endfor %}
 
     </main>
 </div>
+
+<script>
+    // Звёздный рейтинг: 10 звёзд, hover-превью, отправка без перезагрузки
+    (function () {
+        const widget = document.getElementById('starRating');
+        if (!widget) return;
+
+        const row = document.getElementById('starsRow');
+        const input = document.getElementById('ratingInput');
+        const form = document.getElementById('ratingForm');
+        const scoreEl = document.getElementById('ratingScore');
+        const clearBtn = document.getElementById('ratingClear');
+        const actionUrl = form.getAttribute('action');
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        let score = parseInt(widget.dataset.score, 10) || 0;
+        let hoverScore = 0;
+        const stars = [];
+
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'star-btn';
+            btn.dataset.value = i;
+            btn.innerHTML = '&#9733;';
+            btn.title = i + ' из 10';
+            btn.addEventListener('mouseenter', function () { hoverScore = i; render(); });
+            btn.addEventListener('click', function () { submitScore(i); });
+            row.appendChild(btn);
+            stars.push(btn);
+        }
+
+        row.addEventListener('mouseleave', function () { hoverScore = 0; render(); });
+
+        function render() {
+            const shown = hoverScore || score;
+            stars.forEach(function (s, idx) {
+                s.classList.toggle('lit', idx + 1 <= shown);
+                s.classList.toggle('hover-lit', hoverScore > 0 && idx + 1 <= hoverScore);
+            });
+            if (scoreEl) scoreEl.textContent = score || '—';
+            if (clearBtn) clearBtn.hidden = !score;
+        }
+
+        function postScore(value, onDone) {
+            widget.classList.add('is-loading');
+            const data = new FormData();
+            data.append('score', value);
+            data.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch(actionUrl, {
+                method: 'POST',
+                body: data,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (r) { return r.json(); })
+                .then(onDone)
+                .catch(function () {
+                    // Если fetch не сработал — обычный POST без перезагрузки фолбэка
+                    input.value = value;
+                    form.submit();
+                })
+                .finally(function () { widget.classList.remove('is-loading'); });
+        }
+
+        function submitScore(value) {
+            postScore(value, function (res) {
+                score = res.score || value;
+                widget.dataset.score = score;
+                hoverScore = 0;
+                render();
+                const avgEl = document.querySelector('.stat-pill strong');
+                if (avgEl && typeof res.average !== 'undefined') avgEl.textContent = res.average;
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                postScore(0, function (res) {
+                    score = 0;
+                    widget.dataset.score = '';
+                    hoverScore = 0;
+                    render();
+                    const avgEl = document.querySelector('.stat-pill strong');
+                    if (avgEl && typeof res.average !== 'undefined') avgEl.textContent = res.average;
+                });
+            });
+        }
+
+        render();
+    })();
+</script>
+
+<script>
+    // Показать/скрыть форму ответа под комментарием
+    function toggleReplyForm(commentId, forceHide) {
+        const box = document.getElementById('reply-form-' + commentId);
+        if (!box) return;
+
+        if (forceHide) {
+            box.hidden = true;
+            return;
+        }
+
+        const wasHidden = box.hidden;
+        // Скрыть все остальные открытые формы ответов
+        document.querySelectorAll('.reply-form-box').forEach(el => el.hidden = true);
+        box.hidden = !wasHidden;
+        if (wasHidden) {
+            box.querySelector('textarea').focus();
+        }
+    }
+
+    // Плавная прокрутка к комментарию, на который только что ответили
+    document.addEventListener('DOMContentLoaded', function () {
+        if (location.hash.startsWith('#comment-')) {
+            const el = document.querySelector(location.hash);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.borderColor = 'var(--accent)';
+                el.style.boxShadow = '0 0 18px var(--accent-glow)';
+                setTimeout(() => {
+                    el.style.borderColor = '';
+                    el.style.boxShadow = '';
+                }, 2500);
+            }
+        }
+    });
+</script>
 {% endblock %}

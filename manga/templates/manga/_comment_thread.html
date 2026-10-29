@@ -1,0 +1,50 @@
+{# Рекурсивный шаблон комментария с ответами любой глубины. Ожидает: comment, depth, title #}
+<div class="comment-item {% if depth > 0 %}comment-reply{% endif %}" id="comment-{{ comment.id }}">
+
+    <div class="comment-header">
+        <span class="comment-author">
+            <i class="fa-solid fa-user-ninja"></i>
+            <a href="{% url 'user_profile' comment.user.username %}" class="comment-author-link">{{ comment.user.username }}</a>
+            {% if comment.parent %}
+                <span class="comment-reply-to"><i class="fa-solid fa-reply"></i> ответ <a href="{% url 'user_profile' comment.parent.user.username %}" class="comment-author-link">{{ comment.parent.user.username }}</a></span>
+            {% endif %}
+        </span>
+        <span class="comment-date"><i class="fa-regular fa-clock"></i> {{ comment.created_at|date:"d.m.Y H:i" }}</span>
+    </div>
+
+    <p class="comment-text">{{ comment.text }}</p>
+
+    {% if user.is_authenticated %}
+        <div class="comment-actions">
+            <button type="button" class="reply-toggle-btn" onclick="toggleReplyForm({{ comment.id }})">
+                <i class="fa-solid fa-reply"></i> Ответить
+            </button>
+        </div>
+
+        <div class="reply-form-box" id="reply-form-{{ comment.id }}" hidden>
+            <form method="post" action="{% url 'add_comment' title.slug %}">
+                {% csrf_token %}
+                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                <textarea name="text" rows="2" class="comment-textarea" required
+                          placeholder="Ответ для {{ comment.user.username }}..."></textarea>
+                <div class="reply-form-actions">
+                    <button type="submit" class="btn btn-primary reply-submit-btn">
+                        <i class="fa-solid fa-paper-plane"></i> Ответить
+                    </button>
+                    <button type="button" class="btn btn-ghost reply-cancel-btn" onclick="toggleReplyForm({{ comment.id }}, true)">
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if comment.replies_list %}
+        <div class="comment-replies">
+            {% for reply in comment.replies_list %}
+                {% include "manga/_comment_thread.html" with comment=reply depth=depth|add:1 title=title %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
