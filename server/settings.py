@@ -44,10 +44,14 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['simpleprj.sbs', '.simpleprj.sbs', '127.0.0.1', 'localhost', '*']
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS', 'simpleprj.sbs,www.simpleprj.sbs,localhost,127.0.0.1'
+)
 
-# Example: https://mysite.example.com,https://www.mysite.example.com
-CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
+# Example: https://simpleprj.sbs,https://www.simpleprj.sbs
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS', 'https://simpleprj.sbs,https://www.simpleprj.sbs'
+)
 
 
 # Application definition
@@ -162,9 +166,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/6.1/ref/settings/#std-setting-SECURE_SSL_REDIRECT
 
 if not DEBUG:
+    # nginx передаёт X-Forwarded-Proto - Django корректно видит https
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', default=False)
-    CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', default=False)
+    SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', default=True)
+    CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', default=True)
+    # Включай (SECURE_SSL_REDIRECT=1) только после того, как https уже работает
     SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', default=False)
     SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
 

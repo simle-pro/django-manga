@@ -1,0 +1,28 @@
+# systemd-юнит для gunicorn
+#
+# Установка:
+#   sudo cp deploy/gunicorn.service /etc/systemd/system/gunicorn.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now gunicorn
+#
+# Путь /opt/manga-django должен совпадать с тем, где лежит проект.
+# Если проект у тебя в /home/<имя>/..., поменяй WorkingDirectory,
+# User, Group и пути в ExecStart на свой.
+#
+# .env (с SECRET_KEY) settings.py читает сам - дополнительно прописывать
+# переменные здесь не нужно.
+
+[Unit]
+Description=Gunicorn - manga-django (simpleprj.sbs)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/manga-django
+ExecStart=/opt/manga-django/.venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 --timeout 120 server.wsgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
