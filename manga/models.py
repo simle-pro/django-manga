@@ -65,6 +65,19 @@ class User(AbstractUser):
         default=False,
         verbose_name='Скрывать NSFW-тайтлы'
     )
+    pd_consent = models.BooleanField(
+        default=False,
+        verbose_name='Согласие на обработку персональных данных'
+    )
+    terms_consent = models.BooleanField(
+        default=False,
+        verbose_name='Согласие с пользовательским соглашением'
+    )
+    consent_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Дата согласия'
+    )
 
     @property
     def age(self):

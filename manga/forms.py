@@ -32,11 +32,41 @@ class RegisterForm(UserCreationForm):
         (User.Role.AUTHOR, 'Автор / Переводчик'),
     ]
 
+    error_messages = {
+        'password_mismatch': 'Пароли не совпадают.',
+    }
+
     username = forms.CharField(
         label="Имя пользователя",
         min_length=2,
         max_length=150,
-        widget=forms.TextInput(attrs={'style': INPUT_STYLE})
+        widget=forms.TextInput(attrs={'style': INPUT_STYLE}),
+        error_messages={'required': 'Введите имя пользователя.'},
+    )
+
+    password1 = forms.CharField(
+        label="Пароль",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'style': INPUT_STYLE,
+            'autocomplete': 'new-password',
+        }),
+        help_text='',
+        error_messages={'required': 'Введите пароль.'},
+    )
+
+    password2 = forms.CharField(
+        label="Подтверждение пароля",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'style': INPUT_STYLE,
+            'autocomplete': 'new-password',
+        }),
+        help_text='',
+        error_messages={
+            'required': 'Повторите пароль.',
+            'password_mismatch': 'Пароли не совпадают.',
+        },
     )
 
     birth_date = forms.DateField(
@@ -52,6 +82,13 @@ class RegisterForm(UserCreationForm):
         widget=forms.RadioSelect(attrs={'class': 'role-options'}),
     )
 
+    agree = forms.BooleanField(
+        required=True,
+        label="Согласие на обработку персональных данных и пользовательское соглашение",
+        widget=forms.CheckboxInput(attrs={'class': 'consent-check'}),
+        error_messages={'required': 'Без согласия регистрация невозможна.'},
+    )
+
     class Meta:
         model = User
         fields = ['username', 'email', 'role', 'birth_date']
@@ -65,6 +102,11 @@ class RegisterForm(UserCreationForm):
         # При регистрации можно выбрать только читателя или автора
         user.role = role if role in (User.Role.READER, User.Role.AUTHOR) else User.Role.READER
         user.birth_date = self.cleaned_data.get('birth_date')
+        user.pd_consent = bool(self.cleaned_data.get('agree'))
+        user.terms_consent = bool(self.cleaned_data.get('agree'))
+        if user.pd_consent and user.terms_consent:
+            from django.utils import timezone
+            user.consent_date = timezone.now()
         if commit:
             user.save()
         return user

@@ -163,6 +163,51 @@
         color: var(--accent-2);
         text-decoration: underline;
     }
+
+    /* Чекбоксы согласия */
+    .form-body .consent-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: var(--fill-1);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+
+    .form-body .consent-row input[type="checkbox"] {
+        width: auto;
+        margin-top: 3px;
+        accent-color: var(--accent);
+        flex-shrink: 0;
+    }
+
+    .form-body .consent-row label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-main);
+        line-height: 1.45;
+        cursor: pointer;
+    }
+
+    .form-body .consent-row a {
+        color: var(--accent-text);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .form-body .consent-row a:hover {
+        text-decoration: underline;
+    }
+
+    .form-body ul.errorlist.consent-error {
+        list-style: none;
+        padding: 0 0 8px 0;
+        margin: -4px 0 8px;
+        color: var(--accent-2);
+        font-size: 0.82rem;
+    }
 </style>
 
 <div class="auth-container">
@@ -175,7 +220,25 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-body">
-            {{ form.as_p }}
+            {% for field in form %}
+                {% if field.name == 'agree' %}
+                    {% if field.errors %}<ul class="errorlist consent-error">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    <div class="consent-row">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">
+                            Я согласен на <a href="{% url 'privacy' %}" target="_blank" rel="noopener">обработку персональных данных</a>
+                            и с <a href="{% url 'terms' %}" target="_blank" rel="noopener">пользовательским соглашением</a>
+                        </label>
+                    </div>
+                {% else %}
+                    <p>
+                        {{ field.errors }}
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                    </p>
+                {% endif %}
+            {% endfor %}
         </div>
 
         <button type="submit" class="btn btn-primary auth-btn">

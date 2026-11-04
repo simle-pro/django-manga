@@ -373,6 +373,14 @@ def register_view(request):
     return render(request, 'manga/register.html', {'form': form})
 
 
+def privacy_view(request):
+    return render(request, 'manga/privacy.html')
+
+
+def terms_view(request):
+    return render(request, 'manga/terms.html')
+
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
